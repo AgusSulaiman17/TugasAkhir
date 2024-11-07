@@ -42,9 +42,16 @@ func Register(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Tidak dapat membuat pengguna"})
     }
 
-    return c.JSON(http.StatusCreated, user)
-}
+    // Kirim email konfirmasi ke pengguna
+    subject := "Registrasi Berhasil - Selamat Datang!"
+    body := "Halo " + user.Nama + ",\n\nTerima kasih telah mendaftar! Selamat datang di aplikasi kami."
+    err = utils.SendEmail(user.Email, subject, body)
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Pendaftaran berhasil, namun email gagal dikirim"})
+    }
 
+    return c.JSON(http.StatusCreated, map[string]string{"message": "Registrasi berhasil, silakan cek email Anda untuk konfirmasi"})
+}
 // Fungsi Login menangani login pengguna
 func Login(c echo.Context) error {
     var user models.User
