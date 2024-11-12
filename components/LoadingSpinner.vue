@@ -1,5 +1,5 @@
 <template>
-  <div class="loader-overlay" v-if="isLoading">
+  <div class="loader-overlay" v-if="$store.getters.isLoading">
     <div class="loader">
       <span class="bar"></span>
       <span class="bar"></span>
@@ -10,29 +10,27 @@
 
 <script>
 export default {
-  name: 'LoadingSpinner',
-  props: {
-    isLoading: {
-      type: Boolean,
-      required: true
-    }
-  }
-}
+  name: 'LoadingSpinner'
+};
 </script>
 
 <style scoped>
 .loader-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #e3e3e3;
+  background-color: #f5f5f5; 
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  visibility: visible; /* Untuk menjaga agar spinner selalu terlihat */
 }
+
 
 .loader {
   display: flex;
@@ -45,25 +43,24 @@ export default {
   height: 20px;
   background-color: #000000;
   border-radius: 10px;
-  animation: scale-up4 1s linear infinite;
+  animation: scale-up 1s linear infinite;
 }
 
 .bar:nth-child(2) {
   height: 35px;
   margin: 0 5px;
-  animation-delay: .25s;
+  animation-delay: 0.25s;
 }
 
 .bar:nth-child(3) {
-  animation-delay: .5s;
+  animation-delay: 0.5s;
 }
 
-@keyframes scale-up4 {
+@keyframes scale-up {
   20% {
     background-color: #fff;
     transform: scaleY(1.5);
   }
-
   40% {
     transform: scaleY(1);
   }

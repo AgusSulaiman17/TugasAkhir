@@ -17,9 +17,8 @@ export const mutations = {
 };
 
 export const actions = {
-  // Jangan gunakan nuxtClientInit, gunakan created hook jika hanya untuk client
   created({ commit }) {
-    if (process.client) { // Pastikan ini hanya dijalankan di sisi client
+    if (process.client) {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
 
@@ -29,10 +28,10 @@ export const actions = {
 
       if (user) {
         try {
-          commit('setUser', JSON.parse(user)); // Parsing aman dengan try-catch
+          commit('setUser', JSON.parse(user));
         } catch (error) {
-          console.error('Failed to parse user from localStorage:', error); // Jika error, log error
-          localStorage.removeItem('user'); // Bersihkan jika ada masalah parsing
+          console.error('Failed to parse user from localStorage:', error);
+          localStorage.removeItem('user');
         }
       }
     }

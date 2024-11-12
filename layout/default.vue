@@ -1,17 +1,23 @@
 <template>
   <div>
-    <!-- Menampilkan loading spinner jika isLoading true -->
-    <LoadingSpinner :isLoading="$store.state.isLoading" />
-    <nuxt /> <!-- Halaman aktif akan ditampilkan di sini -->
+    <LoadingSpinner />
+    <Nuxt />
   </div>
 </template>
 
 <script>
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
-
 export default {
-  components: {
-    LoadingSpinner
+  mounted() {
+    this.$router.beforeEach((to, from, next) => {
+      this.$store.dispatch('setLoading', true);
+      next();
+    });
+
+    this.$router.afterEach(() => {
+      setTimeout(() => {
+        this.$store.dispatch('setLoading', false);
+      }, 500); // Delay opsional agar terlihat smooth
+    });
   }
 };
 </script>

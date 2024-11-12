@@ -1,36 +1,36 @@
 <template>
   <div class="login">
-  <div class="login-container">
-    <div class="image-container col-lg-5 p-0">
-      <img src="../static/images/bg1.jpg" alt="Login Image" />
-    </div>
-    <div class="form-container col-lg-7">
-      <form @submit.prevent="handleLogin">
-        <div class="card">
-          <a class="login">Log in</a>
-          <div class="inputBox">
-            <input v-model="user.email" id="email" type="email" required />
-            <span class="user">Email</span>
+    <div class="login-container">
+      <div class="image-container col-lg-5 p-0">
+        <img src="../static/images/bg1.jpg" alt="Login Image" />
+      </div>
+      <div class="form-container col-lg-7">
+        <form @submit.prevent="handleLogin">
+          <div class="card">
+            <a class="login">Log in</a>
+            <div class="inputBox">
+              <input v-model="user.email" id="email" type="email" required />
+              <span class="user">Email</span>
+            </div>
+            <div class="inputBox">
+              <input v-model="user.kata_sandi" id="password" type="password" required />
+              <span>Password</span>
+            </div>
+            <button class="enter" type="submit" :disabled="isLoading">Login</button>
           </div>
-          <div class="inputBox">
-            <input v-model="user.kata_sandi" id="password" type="password" required />
-            <span>Password</span>
+          <div class="login-link">
+            <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
+            <p>Belum punya akun? <router-link to="/register">Register</router-link></p>
           </div>
-          <button class="enter" type="submit" :disabled="isLoading">Login</button>
-        </div>
-        <div class="login-link">
-          <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
-          <p>Belum punya akun? <router-link to="/register">Register</router-link></p>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
     <LoadingSpinner v-if="isLoading" />
   </div>
 </template>
 
 <script>
-import LoadingSpinner from "@/components/LoadingSpinner.vue"; 
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {
   components: {
@@ -43,47 +43,50 @@ export default {
         kata_sandi: ""
       },
       errorMessage: "",
-      isLoading: false, // Kontrol state loading
     };
   },
-  methods: {
-  handleLogin() {
-    this.isLoading = true; // Menampilkan loading saat login dimulai
-
-    // Simulasi loading 5 detik sebelum melanjutkan login
-    setTimeout(() => {
-      // Mulai proses login setelah simulasi waktu
-      this.$axios.post("/login", this.user)
-        .then(response => {
-          const token = response.data.token;
-          const user = response.data.user; // Anggap response mengembalikan user dan token
-
-          // Menyimpan token dan user ke Vuex store dan localStorage
-          this.$store.dispatch("login", { token, user });
-
-          // Decode token untuk mendapatkan role
-          const decodedToken = this.decodeToken(token);
-
-          if (decodedToken.role === "admin") {
-            this.$router.push("/admin/dashboard");
-          } else {
-            this.$router.push("/user/dashboard");
-          }
-        })
-        .catch(error => {
-          this.errorMessage = error.response?.data?.message || "Login failed";
-        })
-        .finally(() => {
-          this.isLoading = false; // Sembunyikan loading setelah login selesai
-        });
-    }, 5000); // Loading selama 5 detik
+  computed: {
+    isLoading() {
+      return this.$store.state.isLoading;
+    }
   },
-  decodeToken(token) {
-    const payload = token.split(".")[1];
-    const decoded = atob(payload);
-    return JSON.parse(decoded);
-  }
-},
+  methods: {
+    handleLogin() {
+      this.$store.dispatch('setLoading', true); // Set loading true sebelum mulai login
+
+      // Simulasi loading 3 detik
+      setTimeout(() => {
+        this.$axios.post("/login", this.user)
+          .then(response => {
+            const token = response.data.token;
+            const user = response.data.user; // Anggap response mengembalikan user dan token
+
+            // Menyimpan token dan user ke Vuex store
+            this.$store.dispatch("login", { token, user });
+
+            // Decode token untuk mendapatkan role
+            const decodedToken = this.decodeToken(token);
+
+            if (decodedToken.role === "admin") {
+              this.$router.push("/admin/dashboard");
+            } else {
+              this.$router.push("/user/dashboard");
+            }
+          })
+          .catch(error => {
+            this.errorMessage = error.response?.data?.message || "Login failed";
+          })
+          .finally(() => {
+            this.$store.dispatch('setLoading', false); // Set loading false setelah proses selesai
+          });
+      }, 3000); // Simulasi loading selama 3 detik
+    },
+    decodeToken(token) {
+      const payload = token.split(".")[1];
+      const decoded = atob(payload);
+      return JSON.parse(decoded);
+    }
+  },
   watch: {
     '$route'(to, from) {
       // Jika sudah login dan mengunjungi halaman login, redirect ke dashboard
@@ -95,7 +98,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .login-container {
