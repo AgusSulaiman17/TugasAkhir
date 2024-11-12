@@ -18,6 +18,7 @@ func main() {
     if config.DB == nil {
         panic("Database connection failed. Please check your configuration.")
     }
+    e.Use(middleware.CORS())
     e.Use(middleware.Logger())
     e.Use(middleware.Recover())
 

@@ -4,8 +4,16 @@ import (
     "net/http"
     "github.com/labstack/echo/v4"
 	"fmt"
+    "github.com/labstack/echo/v4/middleware"
 )
 
+// CORS middleware
+func CORS() echo.MiddlewareFunc {
+    return middleware.CORSWithConfig(middleware.CORSConfig{
+        AllowOrigins: []string{"http://localhost:3000"}, 
+        AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
+    })
+}
 // Logger middleware
 func Logger() echo.MiddlewareFunc {
     return func(next echo.HandlerFunc) echo.HandlerFunc {

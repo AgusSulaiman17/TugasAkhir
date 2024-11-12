@@ -20,6 +20,11 @@ func Register(c echo.Context) error {
         return c.JSON(http.StatusBadRequest, map[string]string{"message": "Input tidak valid"})
     }
 
+    // Jika role tidak diisi, set default ke 'user'
+    if user.Role == "" {
+        user.Role = "user"
+    }
+
     // Cek apakah email sudah terdaftar
     var existingUser models.User
     if err := config.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
@@ -52,6 +57,7 @@ func Register(c echo.Context) error {
 
     return c.JSON(http.StatusCreated, map[string]string{"message": "Registrasi berhasil, silakan cek email Anda untuk konfirmasi"})
 }
+
 // Fungsi Login menangani login pengguna
 func Login(c echo.Context) error {
     var user models.User
@@ -82,5 +88,14 @@ func Login(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Kesalahan saat membuat token"})
     }
 
-    return c.JSON(http.StatusOK, map[string]string{"token": token})
+    // Berikan respons yang menyertakan token dan data user
+    return c.JSON(http.StatusOK, map[string]interface{}{
+        "token": token,
+        "user": map[string]interface{}{
+            "id_user": dbUser.IDUser,
+            "nama":    dbUser.Nama,
+            "email":   dbUser.Email,
+            "role":    dbUser.Role,
+        },
+    })
 }
