@@ -1,5 +1,6 @@
 <template>
   <div class="register-container d-flex flex-wrap">
+    <LoadingSpinner />
     <div class="image-container col-lg-5">
       <img src="../static/images/bg2.jpg" alt="Register Image" />
     </div>
@@ -22,17 +23,19 @@
           <button class="enter" type="submit">Register</button>
         </div>
         <div class="login-link">
-        <p>Sudah punya akun? <router-link to="/login">Login</router-link></p>
+        <p>Sudah punya akun? <a @click="login">Login</a></p>
       </div>
       </form>
       <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
-
-
 <script>
+import LoadingSpinner from '~/components/LoadingSpinner.vue';
 export default {
+  components:{
+    LoadingSpinner
+  },
   data() {
     return {
       user: {
@@ -52,7 +55,10 @@ export default {
         this.errorMessage = error.response.data.message;
       }
     },
-  },
+    login() {
+      this.$store.dispatch('navigateWithLoading', { path: '/login', router: this.$router });
+    }
+  }
 };
 </script>
 
@@ -140,13 +146,14 @@ export default {
 
 .inputBox input:valid~span,
 .inputBox input:focus~span {
-  transform: translateX(113px) translateY(-15px);
-  font-size: 0.8em;
+  transform: translateX(150px) translateY(-20px);
+  font-size: 10px;
   padding: 5px 10px;
   background: #000;
   letter-spacing: 0.2em;
   color: #fff;
 }
+
 
 .inputBox input:valid,
 .inputBox input:focus {

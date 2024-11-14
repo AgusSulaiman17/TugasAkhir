@@ -3,8 +3,7 @@
     <LoadingSpinner /> <!-- Tambahkan komponen loading di sini -->
     <b-navbar toggleable="lg" class="content p-2 p-md-0 rounded-5">
       <div class="container">
-        <b-navbar-brand href="#" class="judul btn btn-white font-weight-bold">Lentera</b-navbar-brand>
-
+        <b-navbar-brand href="#" class="judul bg-white p-2 rounded-3 font-weight-bold">Lentera</b-navbar-brand>
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
         <b-collapse v-if="!user" id="nav-collapse" is-nav>
           <b-navbar-nav class="ml-auto">
@@ -25,7 +24,7 @@
                 Pesanan <b-icon-cart></b-icon-cart>
               </button>
             </b-nav-item>
-            <b-nav-item>
+            <b-nav-item class="mr-5">
               <button  @click.prevent="navigateWithLoading('/DetailBuku')"
                 class="nav-link btn btn-white text-dark">
                 Detail Buku <b-icon-book></b-icon-book>
@@ -33,15 +32,15 @@
             </b-nav-item>
           </b-navbar-nav>
           <b-navbar-nav>
-            <b-nav-item>
-              <nuxt-link :to="{ name: 'profile', query: { id: user.id_user } }">
-                <b-button class="px-3 text-white bg-dark">
-                  {{ user.nama }} <b-icon-person></b-icon-person>
-                </b-button>
-              </nuxt-link>
-              <b-button variant="outline-danger" class="ml-2" @click="logout">Logout
-                <b-icon-door-closed></b-icon-door-closed></b-button>
-            </b-nav-item>
+            <b-nav-item-dropdown right>
+              <!-- Konten dropdown -->
+              <template #button-content>
+                <b-icon-person-circle class="mr-2"></b-icon-person-circle>
+                <em> {{ user.nama }}</em>
+              </template>
+              <b-dropdown-item href="#">Profile</b-dropdown-item>
+              <b-dropdown-item href="#" @click.prevent="logout">Sign Out</b-dropdown-item>
+            </b-nav-item-dropdown>
           </b-navbar-nav>
         </b-collapse>
       </div>
@@ -80,7 +79,7 @@ export default {
           this.$store.dispatch('logout');
           this.$router.push('/');
           this.$store.dispatch('setLoading', false); // Matikan loading setelah logout
-        }, 2000); // Simulasi delay untuk visual loading
+        }, 3000); // Simulasi delay untuk visual loading
       }
     },
     home() {
@@ -94,7 +93,7 @@ export default {
         }
 
         this.$store.dispatch('setLoading', false); // Matikan loading setelah navigasi
-      }, 500); // Simulasikan delay untuk loading (bisa disesuaikan)
+      }, 3000); // Simulasikan delay untuk loading (bisa disesuaikan)
     },
     navigateWithLoading(path) {
       console.log('Loading mulai...');
@@ -103,7 +102,7 @@ export default {
         console.log('Navigasi ke: ' + path);
         this.$router.push(path);
         this.$store.dispatch('setLoading', false);
-      }, 2000);
+      }, 3000);
     },
     handleScroll() {
       if (window.scrollY > this.lastScrollY) {
@@ -145,14 +144,17 @@ export default {
 .content {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 20px;
+  transition: box-shadow 0.3s ease-in-out; /* Tambahkan transisi untuk bayangan */
+  transition: background-color 0.3s ease-in-out;
+}
+
+.content:hover {
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .rounded-5 {
   border-radius: 20px !important;
-}
-
-.judul {
-  font-family: 'Life Savers', cursive;
 }
 
 .btn-white {

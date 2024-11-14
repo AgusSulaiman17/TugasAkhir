@@ -15,7 +15,7 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [],
+  css: ['~/assets/css/main.css'],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -49,4 +49,25 @@ export default {
   build: {
     transpile: ['vuex-persist'],
   },
+  router: {
+    extendRoutes(routes, resolve) {
+      routes.push(
+        {
+          name: 'admin-genres',
+          path: '/admin/genres',
+          component: resolve(__dirname, 'pages/admin/genres.vue')
+        },
+        {
+          name: 'admin-create-genre',
+          path: '/admin/genres/create',
+          component: resolve(__dirname, 'pages/admin/CreateGenre.vue')
+        },
+        {
+          name: 'admin-edit-genre',
+          path: '/admin/genres/edit/:id',
+          component: resolve(__dirname, 'pages/admin/EditGenre.vue')
+        }
+      );
+    }
+  }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="Login">
     <div class="login-container">
       <div class="image-container col-lg-5 p-0">
         <img src="../static/images/bg1.jpg" alt="Login Image" />
@@ -20,7 +20,7 @@
           </div>
           <div class="login-link">
             <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
-            <p>Belum punya akun? <router-link to="/register">Register</router-link></p>
+            <p>Belum punya akun? <a @click="register">Register</a></p>
           </div>
         </form>
       </div>
@@ -85,6 +85,9 @@ export default {
       const payload = token.split(".")[1];
       const decoded = atob(payload);
       return JSON.parse(decoded);
+    },
+    register() {
+      this.$store.dispatch('navigateWithLoading', { path: '/register', router: this.$router });
     }
   },
   watch: {
@@ -156,7 +159,7 @@ export default {
   outline: none;
   border: none;
   color: #000;
-  font-size: 1em;
+  font-size: 15px;
   background: transparent;
   border-left: 2px solid #000;
   border-bottom: 2px solid #000;
@@ -182,13 +185,14 @@ export default {
 
 .inputBox input:valid~span,
 .inputBox input:focus~span {
-  transform: translateX(113px) translateY(-15px);
-  font-size: 0.8em;
+  transform: translateX(150px) translateY(-20px);
+  font-size: 10px;
   padding: 5px 10px;
   background: #000;
   letter-spacing: 0.2em;
   color: #fff;
 }
+
 
 .inputBox input:valid,
 .inputBox input:focus {

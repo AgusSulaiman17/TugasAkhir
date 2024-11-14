@@ -59,7 +59,18 @@ export const actions = {
 
   setLoading({ commit }, status) {
     commit('setLoading', status);
+  },
+
+  navigateWithLoading({ commit }, { path, router }) {
+    console.log('Loading mulai...');
+    commit('setLoading', true);
+    setTimeout(() => {
+      console.log('Navigasi ke: ' + path);
+      router.push(path);
+      commit('setLoading', false);
+    }, 2000);
   }
+
 };
 
 export const getters = {
