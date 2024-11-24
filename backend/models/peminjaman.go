@@ -2,22 +2,24 @@ package models
 
 import (
 	"time"
-
 	"gorm.io/gorm"
 )
 
 type Peminjaman struct {
-	IDPeminjaman int       `gorm:"primaryKey" json:"id_peminjaman"`
-	IDUser       int       `gorm:"not null" json:"id_user"`
-	IDBuku       int       `gorm:"not null" json:"id_buku"`
+	IDPeminjaman  int       `gorm:"primaryKey" json:"id_peminjaman"`
+	IDUser        int       `gorm:"not null" json:"id_user"`
+	IDBuku        int       `gorm:"not null" json:"id_buku"`
 	TanggalPinjam time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"tanggal_pinjam"`
-	DurasiHari   int       `gorm:"not null" json:"durasi_hari"`
-	JamKembali   string `json:"jam_kembali"`
+	DurasiHari    int       `gorm:"not null" json:"durasi_hari"`
+	JamKembali    string    `json:"jam_kembali"`
 	TanggalKembali time.Time `json:"tanggal_kembali"`
 	StatusKembali bool      `gorm:"default:false" json:"status_kembali"`
-	Denda          int       `gorm:"default:0" json:"denda"`
-	DibuatPada   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"dibuat_pada"`
+	Denda         int       `gorm:"default:0" json:"denda"`
+	DibuatPada    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"dibuat_pada"`
 	DiperbaruiPada time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"diperbarui_pada"`
+
+	// Relasi ke Buku
+	Buku Buku `gorm:"foreignKey:IDBuku;references:ID" json:"buku"`
 }
 
 func (p *Peminjaman) BeforeCreate(tx *gorm.DB) (err error) {

@@ -21,6 +21,7 @@ func main() {
     e.Use(middleware.CORS())
     e.Use(middleware.Logger())
     e.Use(middleware.Recover())
+    e.Static("/uploads", "uploads")
 
     routes.AuthRoutes(e)
     routes.UserRoutes(e)

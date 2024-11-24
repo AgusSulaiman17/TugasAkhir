@@ -1,28 +1,30 @@
 package controllers
 
 import (
+    "io"
     "net/http"
     "os"
     "path/filepath"
-    "io"
     "strconv"
 
+    "backend/config"
+    "backend/models"
     "github.com/labstack/echo/v4"
     "gorm.io/gorm"
-    "backend/models"
-    "backend/config"
 )
 
-var db *gorm.DB
-
-func init() {
-    db = config.DB
-}
-
-
+// CreateBuku untuk menambahkan buku baru
 // CreateBuku untuk menambahkan buku baru
 func CreateBuku(c echo.Context) error {
     var buku models.Buku
+
+    // Cek apakah judul buku sudah ada
+    judul := c.FormValue("judul")
+    var existingBuku models.Buku
+    if err := config.DB.Where("judul = ?", judul).First(&existingBuku).Error; err == nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Book with this title already exists"})
+    }
+
     file, err := c.FormFile("gambar")
     if err != nil {
         return c.JSON(http.StatusBadRequest, map[string]string{"message": "No image provided"})
@@ -31,7 +33,7 @@ func CreateBuku(c echo.Context) error {
     // Simpan gambar
     src, err := file.Open()
     if err != nil {
-        return err
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to open image"})
     }
     defer src.Close()
 
@@ -43,47 +45,59 @@ func CreateBuku(c echo.Context) error {
     dst := filepath.Join("uploads", file.Filename)
     out, err := os.Create(dst)
     if err != nil {
-        return err
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to save image"})
     }
     defer out.Close()
 
     if _, err = io.Copy(out, src); err != nil {
-        return err
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to copy image"})
     }
 
-    buku.Judul = c.FormValue("judul")
+    buku.Judul = judul
     buku.IdPenulis, _ = strconv.Atoi(c.FormValue("id_penulis"))
     buku.IdGenre, _ = strconv.Atoi(c.FormValue("id_genre"))
     buku.Deskripsi = c.FormValue("deskripsi")
     buku.Jumlah, _ = strconv.Atoi(c.FormValue("jumlah"))
-    buku.Gambar = dst // Simpan path gambar
+    buku.Gambar = "/uploads/" + file.Filename // Path gambar lokal
     buku.Status = true
 
-    // Gunakan config.DB secara langsung untuk menghindari error variabel nil
     if err := config.DB.Create(&buku).Error; err != nil {
         return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to create book"})
+    }
+
+    // Menambahkan preload untuk relasi Penulis dan Genre
+    if err := config.DB.Preload("Penulis").Preload("Genre").First(&buku, buku.ID).Error; err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to load related Penulis or Genre"})
     }
 
     return c.JSON(http.StatusCreated, buku)
 }
 
-
 // GetBuku untuk mendapatkan daftar semua buku
 func GetBuku(c echo.Context) error {
     var bukus []models.Buku
-    if err := db.Find(&bukus).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve books"})
+    if err := config.DB.Preload("Penulis").Preload("Genre").Find(&bukus).Error; err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve books", "error": err.Error()})
     }
     return c.JSON(http.StatusOK, bukus)
 }
 
 // GetBukuByID untuk mendapatkan buku berdasarkan ID
 func GetBukuByID(c echo.Context) error {
-    id := c.Param("id")
-    var buku models.Buku
-    if err := db.First(&buku, id).Error; err != nil {
-        return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+    idParam := c.Param("id")
+    id, err := strconv.Atoi(idParam)
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid ID format"})
     }
+
+    var buku models.Buku
+    if err := config.DB.Preload("Penulis").Preload("Genre").First(&buku, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+        }
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve book", "error": err.Error()})
+    }
+
     return c.JSON(http.StatusOK, buku)
 }
 
@@ -91,15 +105,22 @@ func GetBukuByID(c echo.Context) error {
 func UpdateBuku(c echo.Context) error {
     id := c.Param("id")
     var buku models.Buku
-    if err := db.First(&buku, id).Error; err != nil {
-        return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+
+    // Mencari buku berdasarkan ID
+    if err := config.DB.First(&buku, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+        }
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve book", "error": err.Error()})
     }
 
-    if err := c.Bind(&buku); err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid input"})
+    // Memeriksa apakah ada buku lain dengan judul yang sama (kecuali yang sedang diupdate)
+    var existingBuku models.Buku
+    if err := config.DB.Where("judul = ? AND id_buku != ?", buku.Judul, id).First(&existingBuku).Error; err == nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Judul buku sudah ada"})
     }
 
-    // Hanya update kolom yang diizinkan
+    // Memperbarui informasi buku jika ada perubahan
     if c.FormValue("judul") != "" {
         buku.Judul = c.FormValue("judul")
     }
@@ -115,26 +136,35 @@ func UpdateBuku(c echo.Context) error {
     if c.FormValue("jumlah") != "" {
         buku.Jumlah, _ = strconv.Atoi(c.FormValue("jumlah"))
     }
-    if c.FormValue("gambar") != "" {
-        // Simpan gambar baru jika diupload
-        file, err := c.FormFile("gambar")
+
+    // Memeriksa dan mengupdate gambar jika ada
+    file, err := c.FormFile("gambar")
+    if err == nil {
+        src, err := file.Open()
         if err == nil {
-            src, err := file.Open()
+            defer src.Close()
+            dst := filepath.Join("uploads", file.Filename)
+            out, err := os.Create(dst)
             if err == nil {
-                defer src.Close()
-                dst := filepath.Join("uploads", file.Filename)
-                out, err := os.Create(dst)
-                if err == nil {
-                    defer out.Close()
-                    io.Copy(out, src)
-                    buku.Gambar = dst // Update path gambar
-                }
+                defer out.Close()
+                io.Copy(out, src)
+                buku.Gambar = "/uploads/" + file.Filename
+            } else {
+                return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to save image"})
             }
+        } else {
+            return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to open image"})
         }
     }
 
-    if err := db.Save(&buku).Error; err != nil {
+    // Menyimpan perubahan buku
+    if err := config.DB.Save(&buku).Error; err != nil {
         return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to update book"})
+    }
+
+    // Menambahkan preload untuk relasi Penulis dan Genre setelah update
+    if err := config.DB.Preload("Penulis").Preload("Genre").First(&buku, buku.ID).Error; err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to load related Penulis or Genre"})
     }
 
     return c.JSON(http.StatusOK, buku)
@@ -144,12 +174,16 @@ func UpdateBuku(c echo.Context) error {
 func DeleteBuku(c echo.Context) error {
     id := c.Param("id")
     var buku models.Buku
-    if err := db.First(&buku, id).Error; err != nil {
-        return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+
+    if err := config.DB.First(&buku, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return c.JSON(http.StatusNotFound, map[string]string{"message": "Book not found"})
+        }
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to retrieve book", "error": err.Error()})
     }
 
-    if err := db.Delete(&buku).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to delete book"})
+    if err := config.DB.Delete(&buku).Error; err != nil {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Failed to delete book", "error": err.Error()})
     }
 
     return c.JSON(http.StatusOK, map[string]string{"message": "Book deleted"})

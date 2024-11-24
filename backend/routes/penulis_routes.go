@@ -13,7 +13,7 @@ func PenulisRoutes(e *echo.Echo) {
 
     adminGroup.POST("", controllers.CreatePenulis)         // Menambahkan penulis
     adminGroup.GET("/:id", controllers.GetPenulis)        // Mendapatkan penulis berdasarkan ID
-    adminGroup.GET("", controllers.GetAllPenulis)         // Mendapatkan semua penulis
     adminGroup.PUT("/:id", controllers.UpdatePenulis)     // Memperbarui penulis berdasarkan ID
     adminGroup.DELETE("/:id", controllers.DeletePenulis)  // Menghapus penulis berdasarkan ID
+    e.GET("/penulis", middleware.JWTMiddleware(controllers.GetAllPenulis))
 }

@@ -9,6 +9,7 @@ import (
 func PeminjamanRoutes(e *echo.Echo) {
     // Gunakan JWTMiddleware untuk setiap rute peminjaman yang membutuhkan autentikasi
     e.POST("/peminjaman", middleware.JWTMiddleware(controllers.CreatePeminjaman))
+    e.GET("/peminjamanuser", middleware.JWTMiddleware(controllers.GetPeminjamanbyUser))
     e.GET("/peminjaman", middleware.JWTMiddleware(controllers.GetAllPeminjaman))
     e.PUT("/peminjaman/:id", middleware.JWTMiddleware(controllers.UpdatePeminjaman))
     e.DELETE("/peminjaman/:id", middleware.JWTMiddleware(controllers.DeletePeminjaman))
