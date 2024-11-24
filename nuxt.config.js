@@ -23,7 +23,6 @@ export default {
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
     // https://go.nuxtjs.dev/eslint
-    '@nuxtjs/eslint-module',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
@@ -39,11 +38,17 @@ export default {
   },
 
   plugins: [
-    '~/plugins/auth.js'  // Menambahkan plugin auth
+    '~/plugins/auth.js',  // Menambahkan plugin auth
+    '~/plugins/axios.js'
   ],
 
+  ssr: false,
+
   axios: {
-    baseURL: 'http://localhost:8080',  // Base URL untuk API Anda
+    proxy: true
+  },
+  proxy: {
+    '/api/': { target: 'http://localhost:8080', pathRewrite: { '^/api/': '' } }
   },
 
   build: {
@@ -58,15 +63,10 @@ export default {
           component: resolve(__dirname, 'pages/admin/genres.vue')
         },
         {
-          name: 'admin-create-genre',
-          path: '/admin/genres/create',
-          component: resolve(__dirname, 'pages/admin/CreateGenre.vue')
+          name: 'detail-buku',
+          path: '/DetailBuku/:id_buku',
+          component: resolve(__dirname, 'pages/DetailBuku.vue'),
         },
-        {
-          name: 'admin-edit-genre',
-          path: '/admin/genres/edit/:id',
-          component: resolve(__dirname, 'pages/admin/EditGenre.vue')
-        }
       );
     }
   }

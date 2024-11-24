@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Irish+Grover&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap');
 
 .font-roboto{
   font-family: "Roboto Slab", serif;
@@ -13,5 +14,17 @@
 }
 
 .mt-8{
-  margin-top: 100px;
+  margin-top: 150px;
+}
+
+.font-irish{
+  font-family: "Irish Grover", system-ui;
+}
+.container-fluid {
+  max-width: 1600px;
+  padding-right: 50px;
+  padding-left: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

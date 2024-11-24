@@ -56,7 +56,7 @@ export default {
 
       // Simulasi loading 3 detik
       setTimeout(() => {
-        this.$axios.post("/login", this.user)
+        this.$axios.post("http://localhost:8080/login", this.user)
           .then(response => {
             const token = response.data.token;
             const user = response.data.user; // Anggap response mengembalikan user dan token

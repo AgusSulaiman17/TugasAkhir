@@ -21,20 +21,23 @@
             <span class="label">Kata Sandi</span>
           </div>
           <button class="enter" type="submit">Register</button>
+
+          <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
         </div>
         <div class="login-link">
-        <p>Sudah punya akun? <a @click="login">Login</a></p>
-      </div>
+          <p>Sudah punya akun? <a @click="login">Login</a></p>
+        </div>
       </form>
-      <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
+
     </div>
   </div>
 </template>
+
 <script>
 import LoadingSpinner from '~/components/LoadingSpinner.vue';
 export default {
-  components:{
-    LoadingSpinner
+  components: {
+    LoadingSpinner,
   },
   data() {
     return {
@@ -49,10 +52,14 @@ export default {
   methods: {
     async handleRegister() {
       try {
-        await this.$axios.post('/register', this.user);
-        this.$router.push('/login');
+        await this.$axios.post("/api/register", this.user);
+        // Menampilkan pemberitahuan sukses setelah register
+        alert("Register berhasil! Silakan login.");
+        this.$router.push('/login'); // Menyuruh pengguna ke halaman login setelah register berhasil
       } catch (error) {
-        this.errorMessage = error.response.data.message;
+        // Menangani error dan menampilkan pesan error
+        this.errorMessage = error.response.data.message || "Terjadi kesalahan. Silakan coba lagi.";
+        // Tidak melakukan redirect jika ada error, tetap di halaman ini
       }
     },
     login() {

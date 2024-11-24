@@ -18,7 +18,4 @@ export default{
 }
 </script>
 <style>
-.mt-8{
-  margin-top: 100px;
-}
 </style>

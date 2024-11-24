@@ -1,8 +1,8 @@
 <template>
-  <div class="container d-flex">
+  <div class="container-fluid d-flex">
     <!-- Desktop View -->
     <div class="col-lg-6 d-none d-md-block content-left">
-      <h1 class="judul">Website Peminjaman Buku Perpustakaan <span class="highlight ">Lentera</span></h1>
+      <h1 class="judul">Website Peminjaman Buku Perpustakaan <span class="highlight font-irish text-secondary">Lentera</span></h1>
       <p class="description">Website Peminjaman Buku untuk Perpustakaan Lentera yang asli cuman ada disini.
         cepat pinjam buku sebanyak banyaknya buat anda menjadi lebih pintar
       </p>
@@ -17,9 +17,9 @@
           </router-link>
         </div>
         <div v-if="user">
-          <button @click="masuk" class="btn btn-abu">Masuk {{ user.name }}</button>
+          <button @click="masuk" class="btn btn-abu tombol-landing">Masuk {{ user.name }}</button>
           <router-link to="/#">
-            <button class="btn btn-dark text-white">About Me</button>
+            <button class="btn btn-dark text-white tombol-landing">About Me</button>
           </router-link>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default {
 <style scoped>
 /* General Styling */
 .judul {
-  font-size: 47px;
+  font-size: 60px;
   font-weight: bold;
 }
 
@@ -114,7 +114,6 @@ export default {
   margin-top: 20px;
 }
 
-/* Layout */
 .content-left {
   padding: 20px;
 }
@@ -174,4 +173,7 @@ export default {
   text-align: center;
 }
 
+.tombol-landing{
+ font-size: 20px;
+}
 </style>
