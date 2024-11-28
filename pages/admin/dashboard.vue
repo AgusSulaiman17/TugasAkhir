@@ -2,122 +2,181 @@
   <div>
     <LoadingSpinner v-if="isLoading" />
     <AppNavbar />
-    <!-- Container dengan Layout Flexbox -->
-    <div class="container-fluid mt-8">
-      <div class="row d-flex flex-wrap ">
-        <div class="card col-lg-8 mr-4 mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Selamat datang Di Lentera</h5>
-            <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-            <a href="#" class="card-link">Card link</a>
-            <a href="#" class="card-link">Another link</a>
-          </div>
+    <div class="admin-dashboard">
+      <div class="welcome-card">
+        <div class="card-body">
+          <h2 class="card-title">✨ Selamat Datang di Lentera ✨</h2>
+          <p class="card-subtitle">
+            Platform peminjaman buku yang <span class="highlight">mudah</span> dan
+            <span class="highlight">cepat</span>
+          </p>
+          <p class="card-text">
+            Kelola buku, data peminjaman, dan pengembalian dengan mudah melalui
+            dashboard ini.
+          </p>
         </div>
+      </div>
 
-        <div v-for="(item, index) in content" :key="index" class="card col-lg-3 mb-4 mx-2">
+      <div class="cards-container">
+        <div
+          v-for="(item, index) in content"
+          :key="index"
+          class="card feature-card"
+        >
           <div class="card-body">
             <h5 class="card-title">{{ item.judul }}</h5>
-            <button @click="next(item.link)" class="btn btn-abu">Lihat {{ item.judul }}</button>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-            <a href="#" class="card-link">Card link</a>
-            <a href="#" class="card-link">Another link</a>
+            <button @click="next(item.link)" class="btn btn-primary">
+              ➡️ Lihat {{ item.judul }}
+            </button>
           </div>
         </div>
       </div>
     </div>
+    <AppFooter />
   </div>
 </template>
 
 <script>
-import AppNavbar from '~/components/AppNavbar.vue';
-import LoadingSpinner from '~/components/LoadingSpinner.vue';
+import AppFooter from "~/components/AppFooter.vue";
+import AppNavbar from "~/components/AppNavbar.vue";
+import LoadingSpinner from "~/components/LoadingSpinner.vue";
 
 export default {
-  middleware: 'admin',
-  name: 'AdminDashboard',
+  middleware: "admin",
+  name: "AdminDashboard",
   components: {
     AppNavbar,
-    LoadingSpinner
+    LoadingSpinner,
+    AppFooter
   },
   data() {
     return {
       content: [
-        { judul: 'Genre', link: 'genres' },
-        { judul: 'Penulis', link: 'penulis' },
-        { judul: 'Buku', link: 'buku' },
-        { judul: 'Peminjaman', link: 'peminjaman'}
+        { judul: "Genre", link: "genres" },
+        { judul: "Penulis", link: "penulis" },
+        { judul: "Buku", link: "buku" },
+        { judul: "Data Peminjaman", link: "dataPeminjaman" },
+        { judul: "Pengembalian", link: "pengembalian" },
       ],
     };
   },
   computed: {
     isLoading() {
       return this.$store.state.isLoading;
-    }
+    },
   },
   methods: {
     next(link) {
-      // Mengarahkan ke halaman sesuai dengan link yang dipilih dan menampilkan loading state
       if (link) {
-        this.$store.dispatch('navigateWithLoading', { path: `/admin/${link}`, router: this.$router });
+        this.$store.dispatch("navigateWithLoading", {
+          path: `/admin/${link}`,
+          router: this.$router,
+        });
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
-.card {
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.admin-dashboard {
+  padding: 2rem;
+  margin-top: 100px;
+  background: linear-gradient(135deg, #f6f8ff, #eef2ff);
+  min-height: 100vh;
 }
 
-.card-body {
+.welcome-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.welcome-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.highlight {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.feature-card {
+  width: 280px;
+  background: #ffffff;
+  border-radius: 12px;
   padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 123, 255, 0.2), transparent);
+  transform: scale(0);
+  transition: transform 0.5s;
+  z-index: -1;
+}
+
+.feature-card:hover:before {
+  transform: scale(1);
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
 }
 
 .card-title {
   font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-.card-subtitle {
-  font-size: 1rem;
-}
-
-.card-text {
-  font-size: 1rem;
-  color: #555;
-}
-
-.card-link {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.card-link:hover {
-  text-decoration: underline;
-}
-
-.btn-abu {
-  background-color: #ccc;
+  margin-bottom: 1.5rem;
   color: #333;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
-.btn-abu:hover {
-  background-color: #bbb;
+.btn-primary {
+  background-color: #007bff;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
 }
 
 /* Responsif */
 @media (max-width: 768px) {
-  .card {
-    margin-bottom: 15px;
-    width: 100%;
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .feature-card {
+    width: 90%;
   }
 }
 </style>

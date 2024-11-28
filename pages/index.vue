@@ -1,11 +1,13 @@
 <template>
   <div>
     <AppNavbar />
-    <HeroLanding class="mt-8" />
+    <HeroLanding class="mt-8 mb-8" />
+    <AppFooter />
   </div>
 </template>
 
 <script>
+import AppFooter from '~/components/AppFooter.vue';
 import AppNavbar from '~/components/AppNavbar.vue';
 import HeroLanding from '~/components/HeroLanding.vue';
 
@@ -13,9 +15,13 @@ export default{
   name:'Landing',
   components: {
     AppNavbar,
-    HeroLanding
+    HeroLanding,
+    AppFooter
   }
 }
 </script>
-<style>
+<style scoped>
+.mb-8{
+  margin-bottom: 150px;
+}
 </style>

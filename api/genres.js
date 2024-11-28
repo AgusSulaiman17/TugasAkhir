@@ -28,7 +28,7 @@ export const createGenre = async (genre) => {
     console.error('Error creating genre:', error);
     throw error;
   }
-};
+};``
 
 // Memperbarui genre
 export const updateGenre = async (id, genre) => {

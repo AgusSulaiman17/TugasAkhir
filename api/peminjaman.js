@@ -42,3 +42,18 @@ export const deletePeminjaman = async (id) => {
   const response = await axios.delete(`${apiUrl}/peminjaman/${id}`, { headers: getAuthHeader() });
   return response.data;
 };
+
+export const getPengembalianPending = async () => {
+  const response = await axios.get(`${apiUrl}/pengembalian/pending`, { headers: getAuthHeader() });
+  return response.data;
+};
+
+export const verifyReturn = async (id) => {
+  const response = await axios.post(`${apiUrl}/pengembalian/${id}/verify`, {}, { headers: getAuthHeader() });
+  return response.data;
+};
+
+export const rejectReturn = async (id, data) => {
+  const response = await axios.post(`${apiUrl}/pengembalian/${id}/reject`, data, { headers: getAuthHeader() });
+  return response.data;
+};

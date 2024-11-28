@@ -5,14 +5,13 @@
       <!-- Tampilkan Pesan Error -->
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-      <!-- Tampilkan Spinner Jika Data Sedang Dimuat -->
+      <!-- Tampilkan Detail Buku -->
       <div v-if="loading" class="text-center my-5">
         <div class="spinner-border" role="status">
           <span class="sr-only">Loading...</span>
         </div>
       </div>
 
-      <!-- Tampilkan Detail Buku -->
       <div v-else-if="buku" class="card">
         <div class="row no-gutters">
           <div class="col-md-4">
@@ -35,9 +34,9 @@
       </div>
 
       <!-- Modal Peminjaman -->
-      <div v-if="showModal" class="modal fade show d-block" tabindex="-1" role="dialog"
+      <div v-if="showModal" class="modal fade show d-block " tabindex="-1" role="dialog"
         style="background: rgba(0, 0, 0, 0.5);">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog mt-8" role="document">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">Formulir Peminjaman Buku</h5>
@@ -46,6 +45,13 @@
               </button>
             </div>
             <div class="modal-body">
+              <!-- Loading Spinner -->
+              <div v-if="loading" class="spinner-overlay">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </div>
+
               <form @submit.prevent="submitPeminjaman">
                 <div class="form-group">
                   <label for="durasi">Durasi (hari)</label>
@@ -107,39 +113,32 @@ export default {
     },
     async submitPeminjaman() {
       try {
-        // Validasi form
         if (!this.form.durasiHari || !this.form.jamKembali) {
           this.error = 'Semua kolom harus diisi';
-          return; // Keluar jika validasi gagal
+          return;
         }
 
-        // Data yang akan dikirim ke server
         const peminjamanData = {
           id_buku: this.buku.id_buku,
           durasi_hari: this.form.durasiHari,
           jam_kembali: this.form.jamKembali,
         };
 
-        // Tampilkan loading indicator
         this.loading = true;
 
-        // Panggil API untuk membuat peminjaman
         const response = await createPeminjaman(peminjamanData);
 
-        // Pastikan respons memiliki data yang diharapkan
         if (response && response.id_peminjaman) {
-          this.showModal = false; // Tutup modal
-          this.$router.push('/BukuPinjaman'); // Redirect ke halaman daftar peminjaman
+          this.showModal = false;
+          this.$router.push('/BukuPinjaman');
           alert('Peminjaman berhasil dibuat!');
         } else {
           throw new Error('Respons dari server tidak valid.');
         }
       } catch (error) {
-        // Tangani error dari server atau validasi lainnya
         console.error('Error saat membuat peminjaman:', error);
         this.error = error.response?.data?.message || error.message || 'Gagal mengajukan peminjaman. Coba lagi nanti.';
       } finally {
-        // Sembunyikan loading indicator
         this.loading = false;
       }
     },
@@ -165,5 +164,22 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+}
+
+.modal-content {
+  position: relative;
 }
 </style>
