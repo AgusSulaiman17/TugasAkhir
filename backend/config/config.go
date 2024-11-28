@@ -35,7 +35,6 @@ func ConnectDB() {
         log.Fatal("Failed to connect to the database:", dbErr)
     }
 
-    // Auto-migrate models to create tables if they don't exist
 dbErr = DB.AutoMigrate(&models.Genre{}, &models.Penulis{}, &models.Buku{}, &models.Peminjaman{})
 if dbErr != nil {
     log.Fatal("Failed to migrate database:", dbErr)

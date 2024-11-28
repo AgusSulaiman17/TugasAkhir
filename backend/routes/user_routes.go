@@ -7,8 +7,8 @@ import (
 )
 
 func UserRoutes(e *echo.Echo) {
-    e.GET("/user/:id", controllers.GetUser, middleware.JWTMiddleware)
-    e.GET("/users", controllers.GetUsers, middleware.JWTMiddleware)
-    e.PUT("/user/:id", controllers.UpdateUser, middleware.JWTMiddleware)
-    e.DELETE("/user/:id", controllers.DeleteUser, middleware.JWTMiddleware)
+    e.GET("/user/:id", middleware.JWTMiddleware(controllers.GetUser))
+    e.GET("/users", middleware.JWTMiddleware(controllers.GetUsers))
+    e.PUT("/user/:id", middleware.JWTMiddleware(controllers.UpdateUser))
+    e.DELETE("/user/:id", middleware.JWTMiddleware(controllers.DeleteUser))
 }
