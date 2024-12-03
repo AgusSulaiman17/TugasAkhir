@@ -20,6 +20,11 @@ export default {
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
 
+
+  script: [
+    { src: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js', body: true }
+  ],
+
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
     // https://go.nuxtjs.dev/eslint
@@ -50,7 +55,6 @@ export default {
   proxy: {
     '/api/': { target: 'http://localhost:8080', pathRewrite: { '^/api/': '' } }
   },
-
   build: {
     transpile: ['vuex-persist'],
   },
@@ -66,6 +70,11 @@ export default {
           name: 'detail-buku',
           path: '/DetailBuku/:id_buku',
           component: resolve(__dirname, 'pages/DetailBuku.vue'),
+        },
+        {
+          name: 'profile',
+          path: '/Profile/:id_user',
+          component: resolve(__dirname, 'pages/Profile.vue'),
         },
       );
     }

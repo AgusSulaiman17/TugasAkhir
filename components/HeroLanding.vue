@@ -2,7 +2,7 @@
   <div class="container-fluid d-flex">
     <!-- Desktop View -->
     <div class="col-lg-6 d-none d-md-block content-left">
-      <h1 class="judul">Website Peminjaman Buku Perpustakaan <span class="highlight font-irish text-secondary">Lentera</span></h1>
+      <h1 class="judul">Website Peminjaman Buku Perpustakaan <span class="highlight font-irish text-ijomuda">Lentera</span></h1>
       <p class="description">Website Peminjaman Buku untuk Perpustakaan Lentera yang asli cuman ada disini.
         cepat pinjam buku sebanyak banyaknya buat anda menjadi lebih pintar
       </p>
@@ -10,14 +10,14 @@
       <div class="action-buttons">
         <div v-if="!user">
           <router-link to="/login">
-            <button class="btn btn-abu">Pesan Sekarang</button>
+            <button class="btn bg-ijomuda">Pesan Sekarang</button>
           </router-link>
           <router-link to="/#">
             <button class="btn btn-dark">About Me</button>
           </router-link>
         </div>
         <div v-if="user">
-          <button @click="masuk" class="btn btn-abu tombol-landing">Masuk {{ user.name }}</button>
+          <button @click="masuk" class="btn bg-ijomuda tombol-landing">Masuk {{ user.name }}</button>
           <router-link to="/#">
             <button class="btn btn-dark text-white tombol-landing">About Me</button>
           </router-link>
@@ -28,7 +28,7 @@
     <!-- Image Slider on Desktop -->
     <div class="col-lg-6 d-none d-md-flex justify-content-center align-items-center slider-container">
       <transition name="slide-fade" mode="out-in">
-        <div class="card bayangan" :key="film[currentIndex].judul">
+        <div class="card bayangan bg-ijomuda" :key="film[currentIndex].judul">
           <img :src="film[currentIndex].img" :alt="film[currentIndex].judul" class="card-img">
           <div class="card-body">
             <h2 class="card-title text-white">{{ film[currentIndex].judul }}</h2>
@@ -163,7 +163,6 @@ export default {
 
 /* Card Styling */
 .bayangan {
-  background-color: rgb(139, 139, 139);
   border-radius: 10px;
   box-shadow: inset 0 46px 69px rgba(0, 0, 0, 0.1);
 }

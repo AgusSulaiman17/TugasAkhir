@@ -1,83 +1,119 @@
 <template>
   <div>
     <AppNavbar />
-    <div class="mt-8">
-      <h1>Buku Management</h1>
+    <div class="container mt-8">
+      <h2 class="mb-4 text-center text-primary">Manajemen Buku</h2>
       <div>
         <button @click="openCreateModal">Tambah Buku</button>
-        <table>
-          <thead>
-            <tr>
-              <th>Judul</th>
-              <th>Penulis</th>
-              <th>Genre</th>
-              <th>Jumlah</th>
-              <th>Gambar</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="buku in bukuList" :key="buku.id_buku">
-              <td>{{ buku.judul }}</td>
-              <td>{{ buku.penulis && buku.penulis.nama ? buku.penulis.nama : 'Tidak diketahui' }}</td>
-              <td>{{ buku.genre && buku.genre.nama ? buku.genre.nama : 'Tidak diketahui' }}</td>
-              <td>{{ buku.jumlah }}</td>
-              <td><img v-if="buku.gambar" :src="`http://localhost:8080${buku.gambar}`" :alt="buku.judul"
-                  class="card-img-top" style="width: 100px" />
-                <span v-else class="text-center">Tidak ada gambar</span>
-              </td>
-              <td>
-                <button @click="openEditModal(buku)">Edit</button>
-                <button @click="deleteBuku(buku.id_buku)">Hapus</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        </div>
+
+      <!-- Tampilkan Pesan Error -->
+      <div v-if="error" class="alert alert-danger text-center">{{ error }}</div>
+
+      <!-- Tampilkan Spinner Jika Data Sedang Dimuat -->
+      <div v-if="loading" class="text-center my-5">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Tampilkan Daftar Buku -->
+      <div v-else>
+        <div v-if="bukuList.length === 0" class="text-center">
+          <p class="text-muted">Tidak ada buku yang terdaftar.</p>
+        </div>
+
+        <div v-else>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Judul</th>
+                <th>Penulis</th>
+                <th>Genre</th>
+                <th>Deskripsi</th>
+                <th>Jumlah</th>
+                <th>Gambar</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="buku in bukuList" :key="buku.id_buku">
+                <td>{{ buku.judul }}</td>
+                <td>{{ buku.penulis?.nama || 'Tidak diketahui' }}</td>
+                <td>{{ buku.genre?.nama || 'Tidak diketahui' }}</td>
+                <td>{{ buku.deskripsi }}</td>
+                <td>{{ buku.jumlah }}</td>
+                <td>
+                  <img v-if="buku.gambar" :src="`http://localhost:8080${buku.gambar}`" :alt="buku.judul" class="card-img-top" style="width: 100px" />
+                  <span v-else class="text-center">Tidak ada gambar</span>
+                </td>
+                <td>
+                  <button @click="openEditModal(buku)" class="btn btn-sm btn-primary">Edit</button>
+                  <button @click="deleteBuku(buku.id_buku)" class="btn btn-sm btn-danger">Hapus</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Modal untuk menambah dan mengedit buku -->
       <div v-if="isModalOpen" class="modal">
-        <h2>{{ isEditMode ? 'Edit Buku' : 'Tambah Buku' }}</h2>
-        <form @submit.prevent="submitForm">
-          <div>
-            <label for="judul">Judul</label>
-            <input type="text" v-model="buku.judul" required>
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ isEditMode ? 'Edit Buku' : 'Tambah Buku' }}</h5>
+              <button @click="closeModal" class="btn-close"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="submitForm">
+                <div class="mb-3">
+                  <label for="judul" class="form-label">Judul</label>
+                  <input type="text" id="judul" class="form-control" v-model="buku.judul" required />
+                </div>
+                <div class="mb-3">
+                  <label for="id_penulis" class="form-label">Penulis</label>
+                  <select id="id_penulis" class="form-select" v-model="buku.id_penulis" required>
+                    <option v-for="penulis in penulisList" :key="penulis.id_penulis" :value="penulis.id_penulis">
+                      {{ penulis.nama }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="id_genre" class="form-label">Genre</label>
+                  <select id="id_genre" class="form-select" v-model="buku.id_genre" required>
+                    <option v-for="genre in genreList" :key="genre.id_genre" :value="genre.id_genre">
+                      {{ genre.nama }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="deskripsi" class="form-label">Deskripsi</label>
+                  <textarea id="deskripsi" class="form-control" v-model="buku.deskripsi"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label for="jumlah" class="form-label">Jumlah</label>
+                  <input type="number" id="jumlah" class="form-control" v-model="buku.jumlah" required />
+                </div>
+                <div class="mb-3">
+                  <label for="gambar" class="form-label">Gambar</label>
+                  <input type="file" id="gambar" class="form-control" @change="onFileChange" />
+                </div>
+                <div class="d-flex justify-content-end">
+                  <button type="submit" class="btn btn-primary">
+                    {{ isEditMode ? 'Update' : 'Tambah' }}
+                  </button>
+                  <button type="button" class="btn btn-secondary ms-2" @click="closeModal">Batal</button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div>
-            <label for="id_penulis">Penulis</label>
-            <select v-model="buku.id_penulis" required>
-              <option v-for="penulis in penulisList" :key="penulis.id_penulis" :value="penulis.id_penulis">
-                {{ penulis.nama }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <label for="id_genre">Genre</label>
-            <select v-model="buku.id_genre" required>
-              <option v-for="genre in genreList" :key="genre.id_genre" :value="genre.id_genre">
-                {{ genre.nama }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <label for="deskripsi">Deskripsi</label>
-            <textarea v-model="buku.deskripsi"></textarea>
-          </div>
-          <div>
-            <label for="jumlah">Jumlah</label>
-            <input type="number" v-model="buku.jumlah" required>
-          </div>
-          <div>
-            <label for="gambar">Gambar</label>
-            <input type="file" @change="onFileChange">
-          </div>
-          <button type="submit">{{ isEditMode ? 'Update' : 'Tambah' }}</button>
-          <button @click="closeModal">Batal</button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import { getBukuList, createBuku, updateBuku, deleteBuku } from '~/api/buku.js';
@@ -105,36 +141,40 @@ export default {
       },
       isModalOpen: false,
       isEditMode: false,
+      loading: false,
+      error: null,
     };
   },
   async created() {
     await this.getBukuList();
-    // Fetch penulisList dan genreList juga
     await this.fetchPenulisList();
     await this.fetchGenreList();
   },
   methods: {
     async getBukuList() {
       try {
+        this.loading = true;
+        this.error = null;
         this.bukuList = await getBukuList();
       } catch (error) {
+        this.error = 'Gagal memuat daftar buku.';
         console.error('Error fetching buku list:', error);
+      } finally {
+        this.loading = false;
       }
     },
     async fetchPenulisList() {
       try {
-        const data = await getPenulis(); // Memanggil fungsi getPenulis dari api/penulis.js
-        console.log('Penulis Data:', data); // Periksa hasilnya di console
-        this.penulisList = data || []; // Simpan data penulis ke penulisList
+        const data = await getPenulis();
+        this.penulisList = data || [];
       } catch (error) {
         console.error('Error fetching penulis:', error);
       }
     },
     async fetchGenreList() {
       try {
-        const data = await getGenres(); // Memanggil fungsi getGenres dari api/genres.js
-        console.log('Genre Data:', data); // Periksa hasilnya di console
-        this.genreList = data || []; // Simpan data genre ke genreList
+        const data = await getGenres();
+        this.genreList = data || [];
       } catch (error) {
         console.error('Error fetching genre:', error);
       }
@@ -176,23 +216,25 @@ export default {
         this.getBukuList();
         this.closeModal();
       } catch (error) {
+        this.error = 'Gagal menyimpan data.';
         console.error('Error while saving data:', error);
-        alert('Error while saving data');
       }
     },
     async deleteBuku(id_buku) {
-      if (confirm('Are you sure you want to delete this book?')) {
+      if (confirm('Apakah Anda yakin ingin menghapus buku ini?')) {
         try {
           await deleteBuku(id_buku);
           this.getBukuList();
         } catch (error) {
+          this.error = 'Gagal menghapus buku.';
           console.error('Error deleting buku:', error);
         }
       }
-    },
-  },
+    }
+  }
 };
 </script>
+
 
 <style scoped>
 .modal {

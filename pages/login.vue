@@ -52,19 +52,19 @@ export default {
   },
   methods: {
     handleLogin() {
-      this.$store.dispatch('setLoading', true); // Set loading true sebelum mulai login
+      this.$store.dispatch('setLoading', true); // Trigger loading state to true
 
-      // Simulasi loading 3 detik
+      // Simulate 3 seconds loading time
       setTimeout(() => {
         this.$axios.post("http://localhost:8080/login", this.user)
           .then(response => {
             const token = response.data.token;
-            const user = response.data.user; // Anggap response mengembalikan user dan token
+            const user = response.data.user; // Assume response contains user and token
 
-            // Menyimpan token dan user ke Vuex store
+            // Store token and user in Vuex store
             this.$store.dispatch("login", { token, user });
 
-            // Decode token untuk mendapatkan role
+            // Decode token to get role
             const decodedToken = this.decodeToken(token);
 
             if (decodedToken.role === "admin") {
@@ -77,9 +77,9 @@ export default {
             this.errorMessage = error.response?.data?.message || "Login failed";
           })
           .finally(() => {
-            this.$store.dispatch('setLoading', false); // Set loading false setelah proses selesai
+            this.$store.dispatch('setLoading', false); // Set loading false after the process is complete
           });
-      }, 3000); // Simulasi loading selama 3 detik
+      }, 3000); // Simulate loading for 3 seconds
     },
     decodeToken(token) {
       const payload = token.split(".")[1];
@@ -92,7 +92,7 @@ export default {
   },
   watch: {
     '$route'(to, from) {
-      // Jika sudah login dan mengunjungi halaman login, redirect ke dashboard
+      // If already logged in and visiting the login page, redirect to dashboard
       if (this.$store.getters.isAuthenticated && (to.name === 'login')) {
         const decodedRole = this.decodeToken(this.$store.state.token).role;
         this.$router.push(decodedRole === 'admin' ? '/admin/dashboard' : '/user/dashboard');
@@ -105,7 +105,8 @@ export default {
 <style scoped>
 .login-container {
   display: flex;
-  height: 100vh; /* Menggunakan seluruh tinggi layar */
+  height: 100vh;
+  /* Full height */
 }
 
 .image-container {
@@ -192,7 +193,6 @@ export default {
   letter-spacing: 0.2em;
   color: #fff;
 }
-
 
 .inputBox input:valid,
 .inputBox input:focus {

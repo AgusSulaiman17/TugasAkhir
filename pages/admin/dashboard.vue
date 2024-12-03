@@ -3,12 +3,12 @@
     <LoadingSpinner v-if="isLoading" />
     <AppNavbar />
     <div class="admin-dashboard">
-      <div class="welcome-card">
+      <div class="welcome-card bg-ijomuda">
         <div class="card-body">
-          <h2 class="card-title">✨ Selamat Datang di Lentera ✨</h2>
+          <h2 class="card-title">Selamat Datang di Lentera</h2>
           <p class="card-subtitle">
             Platform peminjaman buku yang <span class="highlight">mudah</span> dan
-            <span class="highlight">cepat</span>
+            <span class="highlight ">cepat</span>
           </p>
           <p class="card-text">
             Kelola buku, data peminjaman, dan pengembalian dengan mudah melalui
@@ -23,12 +23,17 @@
           :key="index"
           class="card feature-card"
         >
-          <div class="card-body">
-            <h5 class="card-title">{{ item.judul }}</h5>
-            <button @click="next(item.link)" class="btn btn-primary">
-              ➡️ Lihat {{ item.judul }}
-            </button>
+          <div class="card-details">
+
+            <p class="text-title">{{ item.judul }}</p>
+
+            <p class="text-body">
+              Kelola CRUD {{ item.judul }} disini
+            </p>
           </div>
+          <button @click="next(item.link)" class="card-button">
+            Lihat {{ item.judul }}
+          </button>
         </div>
       </div>
     </div>
@@ -36,10 +41,13 @@
   </div>
 </template>
 
+
+
 <script>
 import AppFooter from "~/components/AppFooter.vue";
 import AppNavbar from "~/components/AppNavbar.vue";
 import LoadingSpinner from "~/components/LoadingSpinner.vue";
+import { BIcon } from 'bootstrap-icons-vue';
 
 export default {
   middleware: "admin",
@@ -47,7 +55,8 @@ export default {
   components: {
     AppNavbar,
     LoadingSpinner,
-    AppFooter
+    AppFooter,
+    BIcon
   },
   data() {
     return {
@@ -57,6 +66,7 @@ export default {
         { judul: "Buku", link: "buku" },
         { judul: "Data Peminjaman", link: "dataPeminjaman" },
         { judul: "Pengembalian", link: "pengembalian" },
+        { judul: "Users", link: "Users" },
       ],
     };
   },
@@ -74,20 +84,38 @@ export default {
         });
       }
     },
+    getIconForCategory(judul) {
+      switch (judul) {
+        case "Genre":
+          return "bookmarks"; // Ikon untuk genre
+        case "Penulis":
+          return "pen"; // Ikon untuk penulis
+        case "Buku":
+          return "book"; // Ikon untuk buku
+        case "Data Peminjaman":
+          return "clipboard"; // Ikon untuk data peminjaman
+        case "Pengembalian":
+          return "reply"; // Ikon untuk pengembalian
+        case "Users":
+          return "person"; // Ikon untuk users
+        default:
+          return "file-earmark"; // Ikon default
+      }
+    },
   },
 };
 </script>
+
 
 <style scoped>
 .admin-dashboard {
   padding: 2rem;
   margin-top: 100px;
-  background: linear-gradient(135deg, #f6f8ff, #eef2ff);
   min-height: 100vh;
 }
 
 .welcome-card {
-  background-color: #ffffff;
+  color: white;
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2.5rem;
@@ -102,7 +130,6 @@ export default {
 }
 
 .highlight {
-  color: #007bff;
   font-weight: bold;
 }
 
@@ -113,59 +140,60 @@ export default {
   justify-content: center;
 }
 
-.feature-card {
-  width: 280px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
+.card {
+  width: 190px;
+  height: 254px;
+  border-radius: 20px;
+  background: #f5f5f5;
   position: relative;
-  overflow: hidden;
+  padding: 1.8rem;
+  border: 2px solid #c3c6ce;
+  transition: 0.5s ease-out;
+  overflow: visible;
 }
 
-.feature-card:before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(0, 123, 255, 0.2), transparent);
-  transform: scale(0);
-  transition: transform 0.5s;
-  z-index: -1;
+.card-details {
+  color: black;
+  height: 100%;
+  gap: 0.5em;
+  display: grid;
+  place-content: center;
 }
 
-.feature-card:hover:before {
-  transform: scale(1);
-}
-
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-}
-
-.card-title {
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
+.card-button {
+  transform: translate(-50%, 125%);
+  width: 60%;
+  border-radius: 1rem;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  background-color: #70a799;
+  color: #fff;
   font-size: 1rem;
-  transition: background-color 0.3s, transform 0.3s;
+  padding: 0.5rem 1rem;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  opacity: 0;
+  transition: 0.3s ease-out;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
+.text-body {
+  color: rgb(134, 134, 134);
+}
+
+.text-title {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+/* Hover Effects */
+.card:hover {
+  border-color: #70a799;
+  box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.25);
+}
+
+.card:hover .card-button {
+  transform: translate(-50%, 50%);
+  opacity: 1;
 }
 
 /* Responsif */
@@ -175,8 +203,8 @@ export default {
     align-items: center;
   }
 
-  .feature-card {
-    width: 90%;
+  .card {
+    width: 80%; /* Membuat card lebih lebar di layar kecil */
   }
 }
 </style>

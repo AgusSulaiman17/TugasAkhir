@@ -2,6 +2,9 @@
   <div>
     <h1>Manage Users</h1>
 
+    <!-- Tombol untuk menambah pengguna baru -->
+    <button @click="openCreateModal">Add User</button>
+
     <!-- Tabel untuk menampilkan pengguna -->
     <table>
       <thead>
@@ -27,9 +30,9 @@
       </tbody>
     </table>
 
-    <!-- Modal untuk edit pengguna -->
-    <div v-if="editingUser">
-      <h2>Edit User</h2>
+    <!-- Modal untuk tambah/edit pengguna -->
+    <div v-if="editingUser !== null || newUser">
+      <h2>{{ newUser ? 'Add User' : 'Edit User' }}</h2>
       <form @submit.prevent="saveUser">
         <div>
           <label>Name</label>
@@ -46,7 +49,7 @@
             <option value="user">User</option>
           </select>
         </div>
-        <button type="submit">Save</button>
+        <button type="submit">{{ newUser ? 'Create' : 'Save' }}</button>
         <button @click="closeEditModal">Cancel</button>
       </form>
     </div>
@@ -54,13 +57,14 @@
 </template>
 
 <script>
-import { getUsers, updateUser, deleteUser } from '@/api/user';
+import { getUsers, updateUser, deleteUser, createUser } from '@/api/user';
 
 export default {
   data() {
     return {
       users: [],
       editingUser: null,
+      newUser: false, // Menandakan apakah kita sedang menambah pengguna baru
     };
   },
   async created() {
@@ -72,20 +76,33 @@ export default {
     }
   },
   methods: {
+    // Fungsi untuk menambah pengguna baru
+    openCreateModal() {
+      this.newUser = true;
+      this.editingUser = { nama: '', email: '', role: 'user' }; // Menginisialisasi data kosong untuk pengguna baru
+    },
     // Fungsi untuk mengedit pengguna
     editUser(id) {
       const user = this.users.find((u) => u.id_user === id);
       if (user) {
         this.editingUser = { ...user }; // Menyalin data pengguna untuk diedit
+        this.newUser = false;
       }
     },
-    // Fungsi untuk menyimpan perubahan pengguna
+    // Fungsi untuk menyimpan perubahan pengguna (baik create maupun update)
     async saveUser() {
       try {
-        await updateUser(this.editingUser.id_user, this.editingUser);
-        const index = this.users.findIndex((user) => user.id_user === this.editingUser.id_user);
-        this.users[index] = { ...this.editingUser }; // Memperbarui data pengguna di tabel
-        this.editingUser = null; // Menutup modal edit
+        if (this.newUser) {
+          // Jika newUser true, maka kita sedang membuat pengguna baru
+          await createUser(this.editingUser);
+          this.users.push({ ...this.editingUser }); // Menambah pengguna baru ke tabel
+        } else {
+          // Jika newUser false, maka kita sedang memperbarui pengguna
+          await updateUser(this.editingUser.id_user, this.editingUser);
+          const index = this.users.findIndex((user) => user.id_user === this.editingUser.id_user);
+          this.users[index] = { ...this.editingUser }; // Memperbarui data pengguna di tabel
+        }
+        this.closeEditModal(); // Menutup modal setelah proses selesai
       } catch (error) {
         console.error(error);
       }
@@ -99,28 +116,11 @@ export default {
         console.error(error);
       }
     },
-    // Fungsi untuk menutup modal edit
+    // Fungsi untuk menutup modal edit/tambah
     closeEditModal() {
       this.editingUser = null;
+      this.newUser = false;
     }
   }
 };
 </script>
-
-<style scoped>
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 8px;
-  text-align: left;
-  border: 1px solid #ddd;
-}
-button {
-  margin: 5px;
-}
-div {
-  margin-top: 20px;
-}
-</style>

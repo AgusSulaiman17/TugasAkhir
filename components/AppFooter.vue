@@ -1,5 +1,5 @@
 <template>
-  <footer class="app-footer">
+  <footer class="app-footer bg-ijotua">
     <div class="footer-container">
       <!-- Logo dan Deskripsi -->
       <div class="footer-logo">
@@ -44,7 +44,6 @@ export default {
 
 <style scoped>
 .app-footer {
-  background: rgb(52, 51, 51);
   color: #fff;
   padding: 2rem 1rem;
   margin-top: 3rem;
@@ -80,7 +79,6 @@ export default {
 .footer-links h4 {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #ffeb99;
 }
 
 .footer-links ul {
@@ -109,7 +107,6 @@ export default {
 .footer-contact h4 {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #ffeb99;
 }
 
 .footer-contact p {

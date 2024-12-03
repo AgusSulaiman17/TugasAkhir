@@ -10,6 +10,18 @@ const getAuthHeader = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// Fungsi untuk membuat pengguna baru
+export const createUser = async (userData) => {
+  try {
+    const response = await axios.post(`${API_URL}/user`, userData, {
+      headers: getAuthHeader(),
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Error creating user');
+  }
+};
+
 // Fungsi untuk mengambil data pengguna berdasarkan ID
 export const getUser = async (id) => {
   try {

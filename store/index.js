@@ -64,11 +64,18 @@ export const actions = {
   navigateWithLoading({ commit }, { path, router }) {
     console.log('Loading mulai...');
     commit('setLoading', true);
+
+    // Menunggu 1 detik sebelum navigasi
     setTimeout(() => {
-      console.log('Navigasi ke: ' + path);
+      // Navigasi ke path yang ditentukan
       router.push(path);
-      commit('setLoading', false);
-    }, 2000);
+
+      // Setelah navigasi selesai, set loading menjadi false
+      router.afterEach(() => {
+        console.log('Navigasi selesai ke: ' + path);
+        commit('setLoading', false);
+      });
+    },);
   }
 
 };

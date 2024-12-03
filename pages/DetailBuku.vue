@@ -12,33 +12,38 @@
         </div>
       </div>
 
-      <div v-else-if="buku" class="card">
+      <div v-else-if="buku" class="card shadow-lg border-0 rounded-lg">
         <div class="row no-gutters">
           <div class="col-md-4">
-            <img v-if="buku.gambar"
+            <img
+              v-if="buku.gambar"
               :src="buku.gambar.startsWith('http') ? buku.gambar : `http://localhost:8080${buku.gambar}`"
-              :alt="buku.judul" class="card-img" style="height: 100%; object-fit: cover;" />
-            <div v-else class="text-center p-3">Tidak ada gambar</div>
+              :alt="buku.judul"
+              class="card-img rounded-left"
+              style="object-fit: cover; height: 100%;"
+            />
+            <div v-else class="text-center p-3 text-muted">Tidak ada gambar</div>
           </div>
           <div class="col-md-8">
             <div class="card-body">
-              <h3 class="card-title">{{ buku.judul }}</h3>
+              <h3 class="card-title text-primary">{{ buku.judul }}</h3>
               <p class="card-text"><strong>Penulis:</strong> {{ buku.penulis.nama || 'Tidak diketahui' }}</p>
               <p class="card-text"><strong>Genre:</strong> {{ buku.genre.nama || 'Tidak diketahui' }}</p>
               <p class="card-text"><strong>Deskripsi:</strong> {{ buku.deskripsi || 'Tidak tersedia' }}</p>
               <p class="card-text"><strong>Jumlah:</strong> {{ buku.jumlah }}</p>
-              <button @click="showModal = true" class="btn btn-success mt-3">Pinjam Buku</button>
+              <button @click="showModal = true" class="btn btn-success mt-3 px-4 py-2 rounded-3 shadow-sm">
+                Pinjam Buku
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Modal Peminjaman -->
-      <div v-if="showModal" class="modal fade show d-block " tabindex="-1" role="dialog"
-        style="background: rgba(0, 0, 0, 0.5);">
+      <div v-if="showModal" class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
         <div class="modal-dialog mt-8" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
+          <div class="modal-content rounded-lg">
+            <div class="modal-header bg-primary text-white">
               <h5 class="modal-title">Formulir Peminjaman Buku</h5>
               <button type="button" class="close" @click="showModal = false" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -55,13 +60,26 @@
               <form @submit.prevent="submitPeminjaman">
                 <div class="form-group">
                   <label for="durasi">Durasi (hari)</label>
-                  <input type="number" v-model.number="form.durasiHari" placeholder="Masukkan durasi (hari)" required />
+                  <input
+                    type="number"
+                    v-model.number="form.durasiHari"
+                    placeholder="Masukkan durasi (hari)"
+                    class="form-control"
+                    required
+                    min="1"
+                  />
                 </div>
                 <div class="form-group">
                   <label for="jamKembali">Jam Pengembalian</label>
-                  <input type="time" id="jamKembali" v-model="form.jamKembali" class="form-control" required />
+                  <input
+                    type="time"
+                    id="jamKembali"
+                    v-model="form.jamKembali"
+                    class="form-control"
+                    required
+                  />
                 </div>
-                <button type="submit" class="btn btn-primary">Kirim</button>
+                <button type="submit" class="btn btn-primary btn-block py-2 mt-3 rounded-3 shadow-sm">Kirim</button>
               </form>
             </div>
           </div>
@@ -151,13 +169,13 @@ export default {
 
 <style scoped>
 .card {
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .card-img {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
 }
 
 .modal {
@@ -181,5 +199,11 @@ export default {
 
 .modal-content {
   position: relative;
+  border-radius: 12px;
+}
+
+.modal-header {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
 </style>
