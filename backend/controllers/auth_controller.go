@@ -3,9 +3,11 @@ package controllers
 import (
     "net/http"
     "time"
+
     "gorm.io/gorm"
     "golang.org/x/crypto/bcrypt"
     "github.com/labstack/echo/v4"
+
     "backend/models"
     "backend/config"
     "backend/utils"
@@ -29,6 +31,8 @@ func Register(c echo.Context) error {
     var existingUser models.User
     if err := config.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
         return c.JSON(http.StatusConflict, map[string]string{"message": "Email sudah terdaftar"})
+    } else if err != gorm.ErrRecordNotFound {
+        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Kesalahan saat memeriksa email"})
     }
 
     // Hash password menggunakan bcrypt untuk keamanan
