@@ -28,7 +28,7 @@
             <p class="text-title">{{ item.judul }}</p>
 
             <p class="text-body">
-              Kelola CRUD {{ item.judul }} disini
+              Kelola {{ item.judul }} ada disini
             </p>
           </div>
           <button @click="next(item.link)" class="card-button">

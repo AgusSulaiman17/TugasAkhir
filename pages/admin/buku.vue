@@ -4,8 +4,8 @@
     <div class="container mt-8">
       <h2 class="mb-4 text-center text-primary">Manajemen Buku</h2>
       <div>
-        <button @click="openCreateModal">Tambah Buku</button>
-        </div>
+        <button @click="openCreateModal" class="btn btn-primary mb-3">Tambah Buku</button>
+      </div>
 
       <!-- Tampilkan Pesan Error -->
       <div v-if="error" class="alert alert-danger text-center">{{ error }}</div>
@@ -24,9 +24,10 @@
         </div>
 
         <div v-else>
-          <table class="table table-striped">
-            <thead>
+          <table class="table table-striped table-bordered">
+            <thead class=" bg-ijomuda">
               <tr>
+                <th>ID Buku</th>
                 <th>Judul</th>
                 <th>Penulis</th>
                 <th>Genre</th>
@@ -38,6 +39,7 @@
             </thead>
             <tbody>
               <tr v-for="buku in bukuList" :key="buku.id_buku">
+                <td>{{ buku.id_buku }}</td>
                 <td>{{ buku.judul }}</td>
                 <td>{{ buku.penulis?.nama || 'Tidak diketahui' }}</td>
                 <td>{{ buku.genre?.nama || 'Tidak diketahui' }}</td>
@@ -58,7 +60,7 @@
       </div>
 
       <!-- Modal untuk menambah dan mengedit buku -->
-      <div v-if="isModalOpen" class="modal">
+      <div v-if="isModalOpen" class="modal-overlay">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
@@ -113,7 +115,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import { getBukuList, createBuku, updateBuku, deleteBuku } from '~/api/buku.js';
@@ -237,7 +238,8 @@ export default {
 
 
 <style scoped>
-.modal {
+/* Modal Overlay */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -247,11 +249,94 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 99999;
 }
 
-form {
-  background-color: white;
+/* Modal Content */
+.modal-dialog {
+  background-color: #fff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  border-radius: 5px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #aaa;
+  cursor: pointer;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 20px 0;
+}
+
+.form-label {
+  font-weight: bold;
+  color: #555;
+}
+
+.form-control, .form-select {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #ddd;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+button[type="submit"], .btn-secondary {
+  padding: 10px 20px;
+  font-size: 1rem;
+}
+
+button[type="submit"] {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+}
+
+button[type="button"] {
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+}
+
+/* Button Hover */
+button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+/* Modal Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

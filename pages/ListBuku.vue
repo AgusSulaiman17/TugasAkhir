@@ -239,16 +239,6 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-.btn-info {
-  background-color: #ff6b00; /* Warna tombol */
-  border: none; /* Hapus border tombol */
-  color: white;
-  font-weight: bold;
-}
-
-.btn-info:hover {
-  background-color: #e55a00; /* Warna tombol saat hover */
-}
 
 .alert {
   border-radius: 10px; /* Sesuaikan dengan kartu */

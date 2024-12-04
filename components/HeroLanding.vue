@@ -74,9 +74,8 @@ export default {
   data() {
     return {
       film: [
-        { img: 'images/landing2.png', judul: 'Godzila X Kong' },
-        { img: 'images/landing2.png', judul: 'Dilan 1991' },
-        { img: 'images/landing2.png', judul: 'Avatar 2' },
+        { img: 'images/landing2.png', judul: 'Buku Terbaik' },
+        { img: 'images/landing2.png', judul: 'Web Terpercaya' },
       ],
       currentIndex: 0,
     };

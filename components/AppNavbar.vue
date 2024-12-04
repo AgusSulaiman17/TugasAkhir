@@ -31,10 +31,15 @@
                 Buku Pinjaman
               </button>
             </b-nav-item>
-            <b-nav-item class="mr-5">
+            <b-nav-item >
               <button @click.prevent="navigateWithLoading('/listBuku')" :class="{ 'active-link': isActive('/listBuku') }"
                 class="nav-link btn btn-white text-dark">
                 List Buku
+              </button>
+            </b-nav-item>
+            <b-nav-item v-if="user.role === 'admin'" class="mr-5">
+              <button @click="toggleSidebar" class="nav-link btn btn-white text-dark">
+                Menu
               </button>
             </b-nav-item>
           </b-navbar-nav>
@@ -54,38 +59,66 @@
         </b-collapse>
       </div>
     </b-navbar>
+
+    <Sidebar :isOpen="isSidebarOpen" :items="sidebarItems" @close="isSidebarOpen = false" @navigate="navigate" />
   </div>
 </template>
 
 <script>
-import LoadingSpinner from './LoadingSpinner.vue'; // Impor komponen LoadingSpinner
+import LoadingSpinner from './LoadingSpinner.vue';
+import Sidebar from './Sidebar.vue';
 
 export default {
   name: 'AppNavbar',
   components: {
-    LoadingSpinner, // Daftarkan komponen LoadingSpinner
+    LoadingSpinner,
+    Sidebar,
+  },
+  data() {
+    return {
+      isHidden: false,
+      lastScrollTop: 0,
+      isSidebarOpen: false,
+      sidebarItems: [
+        { judul: "Genre", link: "admin/genres" },
+        { judul: "Penulis", link: "admin/penulis" },
+        { judul: "Buku", link: "admin/buku" },
+        { judul: "Data Peminjaman", link: "admin/dataPeminjaman" },
+        { judul: "Pengembalian", link: "admin/pengembalian" },
+        { judul: "Users", link: "admin/Users" },
+      ],
+    };
   },
   computed: {
     user() {
       return this.$store.getters.getUser;
     },
     isLoading() {
-      return this.$store.getters.isLoading; // Ambil status loading dari store
-    }
+      return this.$store.getters.isLoading;
+    },
   },
   methods: {
+    handleScroll() {
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      if (currentScroll > this.lastScrollTop) {
+        this.isHidden = true;
+      } else {
+        this.isHidden = false;
+      }
+      this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    },
     logout() {
-      if (confirm("Apakah Anda Yakin Akan Logout")) {
-        this.$store.dispatch('setLoading', true); // Set loading saat logout
+      if (confirm('Apakah Anda Yakin Akan Logout')) {
+        this.$store.dispatch('setLoading', true);
         setTimeout(() => {
           this.$store.dispatch('logout');
           this.$router.push('/');
-          this.$store.dispatch('setLoading', false); // Matikan loading setelah logout
-        },1000 );
+          this.$store.dispatch('setLoading', false);
+        }, 2000);
       }
     },
     home() {
-      this.$store.dispatch('setLoading', true); // Setel loading ke true
+      this.$store.dispatch('setLoading', true);
 
       setTimeout(() => {
         if (this.user && this.user.role === 'admin') {
@@ -94,16 +127,28 @@ export default {
           this.$router.push('/user/dashboard');
         }
 
-        this.$store.dispatch('setLoading', false); // Matikan loading setelah navigasi
-      }, 1000);
+        this.$store.dispatch('setLoading', false);
+      });
+    },
+    toggleSidebar() {
+      this.isSidebarOpen = !this.isSidebarOpen;
+    },
+    navigate(link) {
+      this.$router.push(`/${link}`);
     },
     navigateWithLoading(path) {
       this.$store.dispatch('navigateWithLoading', { path, router: this.$router });
     },
     isActive(path) {
-      return this.$route.path === path; 
-    }
-  }
+      return this.$route.path === path;
+    },
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
 };
 </script>
 
@@ -116,6 +161,8 @@ export default {
   z-index: 9999;
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
   padding: 20px;
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .content {
@@ -123,7 +170,6 @@ export default {
   border-radius: 20px;
   font-size: 20px;
   transition: box-shadow 0.3s ease-in-out;
-  /* Tambahkan transisi untuk bayangan */
   transition: background-color 0.3s ease-in-out;
 }
 
@@ -147,14 +193,15 @@ export default {
 
 .hidden {
   transform: translateY(-100%);
-  /* Menggeser navbar ke atas saat di-scroll */
   opacity: 0;
-  /* Menyembunyikan navbar */
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
 .active-link {
   font-weight: bold;
   color: #000;
-  /* Sesuaikan dengan warna yang diinginkan */
+  pointer-events: none;
+  border-bottom: 2px solid #000; 
+  padding-bottom: 4px;
 }
 </style>

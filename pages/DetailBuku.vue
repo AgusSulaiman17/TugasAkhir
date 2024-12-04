@@ -15,13 +15,9 @@
       <div v-else-if="buku" class="card shadow-lg border-0 rounded-lg">
         <div class="row no-gutters">
           <div class="col-md-4">
-            <img
-              v-if="buku.gambar"
+            <img v-if="buku.gambar"
               :src="buku.gambar.startsWith('http') ? buku.gambar : `http://localhost:8080${buku.gambar}`"
-              :alt="buku.judul"
-              class="card-img rounded-left"
-              style="object-fit: cover; height: 100%;"
-            />
+              :alt="buku.judul" class="card-img rounded-left" style="object-fit: cover; height: 100%;" />
             <div v-else class="text-center p-3 text-muted">Tidak ada gambar</div>
           </div>
           <div class="col-md-8">
@@ -40,10 +36,11 @@
       </div>
 
       <!-- Modal Peminjaman -->
-      <div v-if="showModal" class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+      <div v-if="showModal" class="modal fade show d-block rounded-lg" tabindex="-1" role="dialog"
+        style="background: rgba(0, 0, 0, 0.5);">
         <div class="modal-dialog mt-8" role="document">
-          <div class="modal-content rounded-lg">
-            <div class="modal-header bg-primary text-white">
+          <div class="modal-content">
+            <div class="modal-header bg-ijomuda text-white">
               <h5 class="modal-title">Formulir Peminjaman Buku</h5>
               <button type="button" class="close" @click="showModal = false" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -60,26 +57,16 @@
               <form @submit.prevent="submitPeminjaman">
                 <div class="form-group">
                   <label for="durasi">Durasi (hari)</label>
-                  <input
-                    type="number"
-                    v-model.number="form.durasiHari"
-                    placeholder="Masukkan durasi (hari)"
-                    class="form-control"
-                    required
-                    min="1"
-                  />
+                  <input type="number" v-model.number="form.durasiHari" placeholder="Masukkan durasi (hari)"
+                    class="form-control" required min="1" max="7" />
                 </div>
                 <div class="form-group">
-                  <label for="jamKembali">Jam Pengembalian</label>
-                  <input
-                    type="time"
-                    id="jamKembali"
-                    v-model="form.jamKembali"
-                    class="form-control"
-                    required
-                  />
+                  <label for="jumlahPinjam">Jumlah Buku</label>
+                  <input type="number" id="jumlahPinjam" v-model.number="form.jumlahPinjam"
+                    placeholder="Masukkan jumlah buku" class="form-control" required min="1" :max="buku.jumlah" />
                 </div>
-                <button type="submit" class="btn btn-primary btn-block py-2 mt-3 rounded-3 shadow-sm">Kirim</button>
+
+                <button type="submit" class="btn bg-ijomuda text-white btn-block py-2 mt-3 rounded-3 shadow-sm">Kirim</button>
               </form>
             </div>
           </div>
@@ -107,7 +94,7 @@ export default {
       showModal: false,
       form: {
         durasiHari: '',
-        jamKembali: '',
+        jumlahPinjam: '',
       },
     };
   },
@@ -131,15 +118,20 @@ export default {
     },
     async submitPeminjaman() {
       try {
-        if (!this.form.durasiHari || !this.form.jamKembali) {
+        if (!this.form.durasiHari || !this.form.jumlahPinjam) {
           this.error = 'Semua kolom harus diisi';
+          return;
+        }
+
+        if (this.form.jumlahPinjam > this.buku.jumlah) {
+          this.error = 'Jumlah buku melebihi stok tersedia';
           return;
         }
 
         const peminjamanData = {
           id_buku: this.buku.id_buku,
           durasi_hari: this.form.durasiHari,
-          jam_kembali: this.form.jamKembali,
+          jumlah_pinjam: this.form.jumlahPinjam, // Ganti dari jamKembali
         };
 
         this.loading = true;
@@ -182,6 +174,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
 }
 
 .spinner-overlay {
