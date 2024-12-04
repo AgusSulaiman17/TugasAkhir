@@ -16,70 +16,50 @@ import (
 
 // Create Peminjaman
 func CreatePeminjaman(c echo.Context) error {
-    var peminjaman models.Peminjaman
+	var peminjaman models.Peminjaman
 
-    // Bind data dari request
-    if err := c.Bind(&peminjaman); err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Format data tidak valid"})
-    }
+	if err := c.Bind(&peminjaman); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Format data tidak valid"})
+	}
 
-    // Validasi data tidak boleh kosong
-    if peminjaman.IDBuku == 0 {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID buku tidak boleh kosong"})
-    }
-    if peminjaman.DurasiHari < 1 {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Durasi hari harus minimal 1"})
-    }
+	if peminjaman.IDBuku == 0 || peminjaman.JumlahPinjam <= 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID buku dan jumlah pinjam tidak boleh kosong atau nol"})
+	}
 
-    // Ambil ID user dari token JWT
-    userId := c.Get("userId").(int)
-    peminjaman.IDUser = userId
+	userId := c.Get("userId").(int)
+	peminjaman.IDUser = userId
+	peminjaman.TanggalPinjam = time.Now()
+	peminjaman.StatusPengembalian = "Belum melakukan pengembalian"
 
-    // Set tanggal pinjam menjadi sekarang
-    peminjaman.TanggalPinjam = time.Now()
+	var buku models.Buku
+	if err := config.DB.First(&buku, peminjaman.IDBuku).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Buku tidak ditemukan"})
+	}
 
-    // Set status pengembalian menjadi "Belum melakukan pengembalian"
-    peminjaman.StatusPengembalian = "Belum melakukan pengembalian"
+	if buku.Jumlah < peminjaman.JumlahPinjam {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Jumlah buku yang tersedia tidak mencukupi"})
+	}
 
-    // Ambil data buku
-    var buku models.Buku
-    if err := config.DB.First(&buku, peminjaman.IDBuku).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Buku tidak ditemukan"})
-    }
+	buku.Jumlah -= peminjaman.JumlahPinjam
 
-    // Pastikan jumlah buku yang tersedia cukup
-    if buku.Jumlah <= 0 {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Buku tidak tersedia"})
-    }
+	if err := config.DB.Save(&buku).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal memperbarui jumlah buku"})
+	}
 
-    // Kurangi jumlah buku yang tersedia
-    buku.Jumlah--
+	if err := config.DB.Create(&peminjaman).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal menyimpan data peminjaman"})
+	}
 
-    // Simpan peminjaman ke database
-    if err := config.DB.Create(&peminjaman).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal menyimpan data peminjaman"})
-    }
+	// Kirim email pemberitahuan peminjaman
+	var user models.User
+	if err := config.DB.First(&user, userId).Error; err == nil {
+		subject := "Konfirmasi Peminjaman Buku"
+		body := "Anda telah meminjam buku: " + buku.Judul + ". Harap dikembalikan sebelum tanggal " + peminjaman.TanggalPinjam.AddDate(0, 0, peminjaman.DurasiHari).Format("02-01-2006") + "."
+		utils.SendEmail(user.Email, subject, body)
+	}
 
-    // Perbarui jumlah buku
-    if err := config.DB.Save(&buku).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal memperbarui jumlah buku"})
-    }
-
-    // Ambil data pengguna untuk email
-    var user models.User
-    if err := config.DB.First(&user, peminjaman.IDUser).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengambil data user"})
-    }
-
-    // Kirim email konfirmasi
-    userEmail := user.Email
-    subject := "Konfirmasi Peminjaman Buku"
-    body := "Terima kasih telah meminjam buku. Harap kembalikan sesuai tanggal yang ditentukan."
-    utils.SendEmail(userEmail, subject, body)
-
-    return c.JSON(http.StatusCreated, peminjaman)
+	return c.JSON(http.StatusCreated, peminjaman)
 }
-
 
 
 func GetPeminjamanbyUser(c echo.Context) error {
@@ -143,87 +123,98 @@ func DeletePeminjaman(c echo.Context) error {
 
 // ReturnBook mengelola pengembalian buku oleh user
 func ReturnBook(c echo.Context) error {
-    idPeminjaman, err := strconv.Atoi(c.Param("id"))
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID peminjaman tidak valid"})
-    }
+	idPeminjaman, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID peminjaman tidak valid"})
+	}
 
-    // Ambil ID user dari JWT
-    userId := c.Get("userId").(int)
+	userId := c.Get("userId").(int)
 
-    var peminjaman models.Peminjaman
-    if err := config.DB.First(&peminjaman, idPeminjaman).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return c.JSON(http.StatusNotFound, map[string]string{"message": "Data peminjaman tidak ditemukan"})
-        }
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mencari data peminjaman"})
-    }
+	var peminjaman models.Peminjaman
+	if err := config.DB.First(&peminjaman, idPeminjaman).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"message": "Data peminjaman tidak ditemukan"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mencari data peminjaman"})
+	}
 
-    // Validasi bahwa hanya user yang melakukan peminjaman dapat mengembalikan
-    if peminjaman.IDUser != userId {
-        return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Anda tidak berhak mengembalikan peminjaman ini"})
-    }
+	if peminjaman.IDUser != userId {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Anda tidak berhak mengembalikan peminjaman ini"})
+	}
 
-    // Cek apakah buku sudah dalam proses pengembalian atau dikembalikan
-    if peminjaman.StatusPengembalian != "Belum melakukan pengembalian" && peminjaman.StatusKembali {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Buku sudah dikembalikan atau sedang menunggu persetujuan"})
-    }
+	if peminjaman.StatusPengembalian != "Belum melakukan pengembalian" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Buku sudah dikembalikan atau sedang menunggu persetujuan"})
+	}
 
-    // Set status pengembalian menjadi Pending
-    peminjaman.StatusPengembalian = "Pending"
-    peminjaman.StatusKembali = true  // Set StatusKembali menjadi true saat pengembalian dimulai
-    peminjaman.TanggalKembali = time.Now()
+	peminjaman.StatusPengembalian = "Pending"
+	peminjaman.StatusKembali = true
+	peminjaman.TanggalKembali = time.Now()
 
-    if err := config.DB.Save(&peminjaman).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengupdate data peminjaman"})
-    }
+	if err := config.DB.Save(&peminjaman).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengupdate data peminjaman"})
+	}
 
-    return c.JSON(http.StatusOK, map[string]string{"message": "Pengembalian dalam proses persetujuan admin"})
+	// Kirim email pemberitahuan pengembalian
+	var user models.User
+	if err := config.DB.First(&user, userId).Error; err == nil {
+		subject := "Pengembalian Buku"
+		body := "Pengembalian buku Anda sedang menunggu persetujuan admin."
+		utils.SendEmail(user.Email, subject, body)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Pengembalian dalam proses persetujuan admin"})
 }
 
 
 // VerifyReturn mengelola verifikasi pengembalian oleh admin
 func VerifyReturn(c echo.Context) error {
-    idPeminjaman, err := strconv.Atoi(c.Param("id"))
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID peminjaman tidak valid"})
-    }
+	idPeminjaman, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "ID peminjaman tidak valid"})
+	}
 
-    var peminjaman models.Peminjaman
-    if err := config.DB.First(&peminjaman, idPeminjaman).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return c.JSON(http.StatusNotFound, map[string]string{"message": "Data peminjaman tidak ditemukan"})
-        }
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mencari data peminjaman"})
-    }
+	var peminjaman models.Peminjaman
+	if err := config.DB.First(&peminjaman, idPeminjaman).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"message": "Data peminjaman tidak ditemukan"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mencari data peminjaman"})
+	}
 
-    // Validasi status pengembalian
-    if peminjaman.StatusPengembalian != "Pending" {
-        return c.JSON(http.StatusBadRequest, map[string]string{"message": "Pengembalian sudah diverifikasi"})
-    }
+	if peminjaman.StatusPengembalian != "Pending" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Pengembalian sudah diverifikasi"})
+	}
 
-    // Perbarui status pengembalian dan jumlah buku
-    peminjaman.StatusPengembalian = "Approved"
-    peminjaman.StatusKembali = true
+	peminjaman.StatusPengembalian = "Approved"
+	peminjaman.StatusKembali = true
 
-    var buku models.Buku
-    if err := config.DB.First(&buku, peminjaman.IDBuku).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengambil data buku"})
-    }
+	var buku models.Buku
+	if err := config.DB.First(&buku, peminjaman.IDBuku).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengambil data buku"})
+	}
 
-    // Tambah jumlah buku yang tersedia
-    buku.Jumlah++
+	buku.Jumlah += peminjaman.JumlahPinjam
 
-    // Simpan perubahan
-    if err := config.DB.Save(&peminjaman).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengupdate data peminjaman"})
-    }
-    if err := config.DB.Save(&buku).Error; err != nil {
-        return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal memperbarui jumlah buku"})
-    }
+	if err := config.DB.Save(&peminjaman).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengupdate data peminjaman"})
+	}
 
-    return c.JSON(http.StatusOK, map[string]string{"message": "Pengembalian berhasil diverifikasi"})
+	if err := config.DB.Save(&buku).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal memperbarui jumlah buku"})
+	}
+
+	// Kirim email pemberitahuan verifikasi pengembalian
+	var user models.User
+	if err := config.DB.First(&user, peminjaman.IDUser).Error; err == nil {
+		subject := "Pengembalian Buku Diverifikasi"
+		body := "Pengembalian buku Anda telah diverifikasi. Terima kasih."
+		utils.SendEmail(user.Email, subject, body)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "Pengembalian berhasil diverifikasi"})
 }
+
+
 
 // RejectReturn mengelola penolakan pengembalian oleh admin
 func RejectReturn(c echo.Context) error {
@@ -274,4 +265,23 @@ func GetPengembalianPending(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Gagal mengambil data pengembalian"})
     }
     return c.JSON(http.StatusOK, peminjaman)
+}
+
+// SendReminderEmail mengirimkan pengingat pengembalian buku
+func SendReminderEmail() {
+	var peminjaman []models.Peminjaman
+	now := time.Now()
+
+	if err := config.DB.Preload("Buku").Where("status_pengembalian = ? AND tanggal_pinjam + interval '1 day' * durasi_hari = ?", "Belum melakukan pengembalian", now.Format("2006-01-02")).Find(&peminjaman).Error; err != nil {
+		return
+	}
+
+	for _, p := range peminjaman {
+		var user models.User
+		if err := config.DB.First(&user, p.IDUser).Error; err == nil {
+			subject := "Pengingat Pengembalian Buku"
+			body := "Harap kembalikan buku: " + p.Buku.Judul + " sebelum tanggal " + p.TanggalPinjam.AddDate(0, 0, p.DurasiHari).Format("02-01-2006") + "."
+			utils.SendEmail(user.Email, subject, body)
+		}
+	}
 }

@@ -6,23 +6,21 @@ import (
 )
 
 type Peminjaman struct {
-    IDPeminjaman      int       `gorm:"primaryKey" json:"id_peminjaman"`
-    IDUser            int       `gorm:"not null" json:"id_user"`
-    IDBuku            int       `gorm:"not null" json:"id_buku"`
-    TanggalPinjam     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"tanggal_pinjam"`
-    DurasiHari        int       `gorm:"not null" json:"durasi_hari"`
-    JamKembali        string    `json:"jam_kembali"`
-    TanggalKembali    time.Time `json:"tanggal_kembali"`
-    StatusKembali     bool      `gorm:"default:false" json:"status_kembali"`
-    StatusPengembalian string   `gorm:"default:'Pending'" json:"status_pengembalian"`
-    Denda             int       `gorm:"default:0" json:"denda"`
-    DibuatPada        time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"dibuat_pada"`
-    DiperbaruiPada    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"diperbarui_pada"`
+    IDPeminjaman       int       `gorm:"primaryKey" json:"id_peminjaman"`
+    IDUser             int       `gorm:"not null" json:"id_user"`
+    IDBuku             int       `gorm:"not null" json:"id_buku"`
+    TanggalPinjam      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"tanggal_pinjam"`
+    DurasiHari         int       `gorm:"not null" json:"durasi_hari"`
+    TanggalKembali     time.Time `json:"tanggal_kembali"`
+    StatusKembali      bool      `gorm:"default:false" json:"status_kembali"`
+    StatusPengembalian string    `gorm:"default:'Pending'" json:"status_pengembalian"`
+    Denda              int       `gorm:"default:0" json:"denda"`
+    DibuatPada         time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"dibuat_pada"`
+    DiperbaruiPada     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"diperbarui_pada"`
+    JumlahPinjam       int       `gorm:"default:0" json:"jumlah_pinjam"` 
 
-    // Relasi ke Buku
     Buku Buku `gorm:"foreignKey:IDBuku;references:ID" json:"buku"`
 }
-
 
 func (p *Peminjaman) BeforeCreate(tx *gorm.DB) (err error) {
 	// Set tanggal kembali otomatis berdasarkan durasi pinjam
