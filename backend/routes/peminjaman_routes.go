@@ -14,8 +14,8 @@ func PeminjamanRoutes(e *echo.Echo) {
 	e.PUT("/peminjaman/:id", middleware.JWTMiddleware(controllers.UpdatePeminjaman))
 	e.DELETE("/peminjaman/:id", middleware.JWTMiddleware(controllers.DeletePeminjaman))
 	e.POST("/peminjaman/:id/kembalikan", middleware.JWTMiddleware(controllers.ReturnBook))
-	e.POST("/pengembalian/:id/verify", middleware.AdminMiddleware(controllers.VerifyReturn))
-	e.POST("/pengembalian/:id/reject", middleware.AdminMiddleware(controllers.RejectReturn))
-	e.GET("/pengembalian/pending", middleware.AdminMiddleware(controllers.GetPengembalianPending))
+	e.POST("/pengembalian/:id/verify", middleware.JWTMiddleware(controllers.VerifyReturn))
+	e.POST("/pengembalian/:id/reject", middleware.JWTMiddleware(controllers.RejectReturn))
+	e.GET("/pengembalian/pending", middleware.JWTMiddleware(controllers.GetPengembalianPending))
 
 }

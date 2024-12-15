@@ -25,6 +25,16 @@ func Register(c echo.Context) error {
     // Jika role tidak diisi, set default ke 'user'
     if user.Role == "" {
         user.Role = "user"
+    } else {
+        // Validasi role yang diizinkan
+        allowedRoles := map[string]bool{
+            "user":    true,
+            "admin":   true,
+            "petugas": true,
+        }
+        if !allowedRoles[user.Role] {
+            return c.JSON(http.StatusBadRequest, map[string]string{"message": "Role tidak valid"})
+        }
     }
 
     // Cek apakah email sudah terdaftar
