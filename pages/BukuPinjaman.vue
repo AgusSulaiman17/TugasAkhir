@@ -86,12 +86,14 @@
                   </div>
                   <!-- Tombol Aksi -->
                   <div class="d-flex flex-column gap-2">
-                    <button v-if="!item.status_kembali" @click="returnBook(item.id_peminjaman)"
-                      class="btn btn-outline-success btn-sm">
-                      Kembalikan Buku
+                    <button v-if="!item.status_kembali" @click="showReturnConfirmation(item.id_peminjaman)"
+                      class="btn bg-ijomuda btn-sm mb-1" :disabled="isLoadingForReturn">
+                      <span v-if="isLoadingForReturn" class="spinner-border spinner-border-sm" role="status"
+                        aria-hidden="true"></span>
+                      <span v-else> Kembalikan Buku </span>
                     </button>
-                    <button v-if="item.status_pengembalian === 'Approved'" @click="deletePeminjaman(item.id_peminjaman)"
-                      class="btn btn-outline-danger btn-sm">
+                    <button v-if="item.status_pengembalian === 'Approved'"
+                      @click="showDeleteConfirmation(item.id_peminjaman)" class="btn bg-merah btn-sm">
                       Hapus Peminjaman
                     </button>
                   </div>
@@ -99,20 +101,49 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
+
+    <!-- Success Notification Modal -->
+    <NotificationModal v-if="showSuccessModal" :isVisible="showSuccessModal" :messageTitle="successTitle"
+      :messageBody="successMessage" @close="closeSuccessModal" />
+
+    <!-- Confirmation Modal for Returning Book -->
+    <NotificationModal v-if="showReturnConfirmationModal" :isVisible="showReturnConfirmationModal"
+      :messageTitle="'Konfirmasi Pengembalian Buku'" :messageBody="'Apakah Anda yakin ingin mengembalikan buku ini?'"
+      @close="cancelReturn">
+      <template #footer>
+        <button @click="confirmReturn" class="btn btn-abu" :disabled="isLoadingForReturn">
+          <span v-if="isLoadingForReturn" class="spinner-border spinner-border-sm" role="status"
+            aria-hidden="true"></span>
+          <span v-else> Ya, Kembalikan </span>
+        </button>
+        <button @click="cancelReturn" class="btn btn-cancel">Batal</button>
+      </template>
+    </NotificationModal>
+
+    <!-- Confirmation Modal for Deleting Peminjaman -->
+    <NotificationModal v-if="showDeleteConfirmationModal" :isVisible="showDeleteConfirmationModal"
+      :messageTitle="'Konfirmasi Hapus Peminjaman'" :messageBody="'Apakah Anda yakin ingin menghapus peminjaman ini?'"
+      @close="cancelDelete">
+      <template #footer>
+        <button @click="confirmDelete" class="btn bg-merah">Ya, Hapus</button>
+        <button @click="cancelDelete" class="btn bg-ijomuda">Batal</button>
+      </template>
+    </NotificationModal>
   </div>
 </template>
 
 <script>
 import { getAllPeminjaman, returnBook, deletePeminjaman } from '@/api/peminjaman';
 import AppNavbar from '~/components/AppNavbar.vue';
+import NotificationModal from '~/components/NotificationModal.vue';
 
 export default {
   components: {
     AppNavbar,
+    NotificationModal
   },
   data() {
     return {
@@ -122,6 +153,14 @@ export default {
       filterPengembalian: '',
       loading: false,
       error: null,
+      showReturnConfirmationModal: false,
+      showDeleteConfirmationModal: false,
+      showSuccessModal: false,
+      successTitle: '',
+      successMessage: '',
+      returnBookId: null,
+      deleteBookId: null,
+      isLoadingForReturn: false, // State untuk kontrol loading pada konfirmasi pengembalian
     };
   },
   computed: {
@@ -148,38 +187,56 @@ export default {
       } catch (error) {
         console.error('Gagal memuat daftar peminjaman:', error);
         this.error = 'Gagal memuat daftar peminjaman. Coba lagi nanti.';
-      } finally {
       }
     },
 
-    async returnBook(id) {
+    showReturnConfirmation(id) {
+      this.returnBookId = id;
+      this.showReturnConfirmationModal = true;
+    },
+
+    showDeleteConfirmation(id) {
+      this.deleteBookId = id;
+      this.showDeleteConfirmationModal = true;
+    },
+
+    cancelReturn() {
+      this.showReturnConfirmationModal = false;
+    },
+
+    cancelDelete() {
+      this.showDeleteConfirmationModal = false;
+    },
+
+    async confirmReturn() {
+      this.isLoadingForReturn = true;
       try {
-        this.loading = true;
-        await returnBook(id);
-        alert('Buku berhasil dikembalikan!');
-        const updatedPeminjaman = this.peminjaman.map((item) => {
-          if (item.id_peminjaman === id) {
-            item.status_kembali = true;
-            item.status_pengembalian = 'Pending';
-          }
-          return item;
-        });
-        this.peminjaman = updatedPeminjaman;
+        await returnBook(this.returnBookId);
+        this.successTitle = 'Pengembalian Buku Berhasil';
+        this.successMessage = 'Tunggu Konfirmasi pengembalian dari admin';
+        this.showSuccessModal = true;
+        this.showReturnConfirmationModal = false;
+        // Ambil data baru dari backend
+        await this.fetchPeminjaman();
       } catch (error) {
         console.error('Gagal mengembalikan buku:', error);
         this.error = 'Gagal mengembalikan buku. Coba lagi nanti.';
       } finally {
-        this.loading = false;
+        this.isLoadingForReturn = false;
       }
     },
 
-    async deletePeminjaman(id) {
+
+    async confirmDelete() {
       try {
         this.loading = true;
-        await deletePeminjaman(id);
-        alert('Peminjaman berhasil dihapus!');
-        // Mengupdate tampilan setelah peminjaman dihapus
-        this.peminjaman = this.peminjaman.filter(item => item.id_peminjaman !== id);
+        await deletePeminjaman(this.deleteBookId);
+        this.successTitle = 'Hapus Peminjaman Berhasil';
+        this.successMessage = 'Peminjaman berhasil dihapus!';
+        this.showSuccessModal = true;
+        this.showDeleteConfirmationModal = false;
+        // Remove the deleted peminjaman from the list
+        this.peminjaman = this.peminjaman.filter(item => item.id_peminjaman !== this.deleteBookId);
       } catch (error) {
         console.error('Gagal menghapus peminjaman:', error);
         this.error = 'Gagal menghapus peminjaman. Coba lagi nanti.';
@@ -188,30 +245,23 @@ export default {
       }
     },
 
+    closeSuccessModal() {
+      this.showSuccessModal = false;
+    },
+
     formatTanggal(date) {
-      return new Date(date).toLocaleDateString('id-ID');
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString('id-ID', options);
     },
 
     getUserId() {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.id_user;
-      } catch (error) {
-        console.error('Gagal memproses token JWT:', error);
-        return null;
-      }
-    },
-
-    getFullImageUrl(path) {
-      const baseUrl = "http://localhost:8000"; // Sesuaikan dengan URL backend Anda
-      return `${baseUrl}${path}`;
-    },
+      const user = JSON.parse(localStorage.getItem('user'));
+      return user ? user.id_user : null;
+    }
   },
   mounted() {
     this.fetchPeminjaman();
-  },
+  }
 };
 </script>
 
@@ -309,8 +359,10 @@ export default {
   position: relative;
   overflow: hidden;
 }
+
 .btn-outline-danger {
-  background-color: #e74c3c; /* Warna dasar merah */
+  background-color: #e74c3c;
+  /* Warna dasar merah */
 }
 
 
@@ -336,7 +388,8 @@ export default {
 }
 
 .btn-outline-danger:hover {
-  background-color: #c0392b; /* Warna merah lebih gelap saat hover */
+  background-color: #c0392b;
+  /* Warna merah lebih gelap saat hover */
 }
 
 .btn-outline-danger:hover::before,
@@ -344,10 +397,11 @@ export default {
   transform: translate(-50%, -50%) scale(1);
 }
 
-.btn-outline-danger:focus{
+.btn-outline-danger:focus {
   outline: none;
   box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.5);
 }
+
 .btn-outline-success:focus {
   outline: none;
   box-shadow: 0 0 0 0.2rem rgba(112, 167, 153, 0.5);

@@ -1,61 +1,86 @@
 <template>
   <div>
     <AppNavbar />
-    <div class="admin-peminjaman mt-8 mx-auto" style="max-width: 1200px;">
+    <div class="mt-8 admin-peminjaman mx-auto" style="max-width: 1200px;">
       <h1 class="text-center mb-4">Data Peminjaman</h1>
-
-      <!-- Tombol untuk membuka modal filter -->
-      <button class="btn btn-primary mb-4" @click="openFilterModal">Filter Data</button>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn bg-ijotua text-white" @click="openFilterModal">
+          Filter Data <b-icon-plus></b-icon-plus>
+        </button>
+        <div class="d-flex">
+          <button class="btn bg-kuning text-white me-2" @click="exportToExcel">
+            Ekspor ke Excel <b-icon icon="file-earmark-spreadsheet"></b-icon>
+          </button>
+        </div>
+      </div>
 
       <!-- Modal Filter -->
       <div v-if="isModalOpen" class="modal-overlay" @click="closeFilterModal">
         <div class="modal-content" @click.stop>
-          <h4 class="text-center">Filter Peminjaman</h4>
-
+          <h4 class="text-center">Filter Peminjaman </h4>
           <div class="filter-section">
-            <!-- Filter Berdasarkan Nama Buku -->
-            <label for="namaBuku" class=" fw-bold">Filter berdasarkan nama buku:</label>
-            <select id="namaBuku" class="form-select  mx-4" v-model="selectedBookName">
-              <option value="">Pilih Nama Buku</option>
+            <label for="namaBuku" class="fw-bold">Filter berdasarkan nama buku:</label>
+            <select id="namaBuku" class="form-select mx-4" v-model="selectedBookName">
+              <option value="">Semua buku</option>
               <option v-for="book in books" :key="book.id_buku" :value="book.judul">{{ book.judul }}</option>
             </select>
 
-            <!-- Filter Berdasarkan ID User -->
-            <label for="idUser" class=" fw-bold ">Filter berdasarkan ID User:</label>
-            <input type="number" id="idUser" class="form-control  mx-4" v-model="selectedUserId" placeholder="Masukkan ID User" />
+            <label for="emailUser" class="fw-bold">Filter berdasarkan email pengguna:</label>
+            <div class="d-flex">
+              <input
+                type="text"
+                placeholder="Cari email..."
+                class="form-control mx-4"
+                v-model="searchEmail"
+                @input="filterData"
+              />
+              <select id="emailUser" class="form-select mx-4" v-model="selectedUserEmail">
+                <option value="">Semua email pengguna</option>
+                <option v-for="user in filteredUsers" :key="user.id_user" :value="user.email">{{ user.email }}</option>
+              </select>
+            </div>
 
-            <!-- Filter Berdasarkan Tanggal Pinjam -->
-            <label for="tanggal" class=" fw-bold ">Filter berdasarkan tanggal pinjam:</label>
-            <input type="date" id="tanggal" class="form-control  mx-4" style="max-width: 200px;" v-model="selectedDate" />
+            <label for="tanggal" class="fw-bold">Filter berdasarkan tanggal pinjam:</label>
+            <input type="date" id="tanggal" class="form-control mx-4" style="max-width: 200px;" v-model="selectedDate" />
 
-            <!-- Filter Berdasarkan Tanggal Kembali -->
-            <label for="tanggalKembali" class=" fw-bold ">Filter berdasarkan tanggal kembali:</label>
-            <input type="date" id="tanggalKembali" class="form-control  mx-4" style="max-width: 200px;" v-model="selectedReturnDate" />
+            <label for="tanggalKembali" class="fw-bold">Filter berdasarkan tanggal kembali:</label>
+            <input type="date" id="tanggalKembali" class="form-control mx-4" style="max-width: 200px;" v-model="selectedReturnDate" />
 
-            <!-- Filter Berdasarkan Status -->
             <label for="status" class="fw-bold">Filter berdasarkan status:</label>
-            <select id="status" class="form-select  mx-4" v-model="selectedStatus">
+            <select id="status" class="form-select mx-4" v-model="selectedStatus">
               <option value="">Semua Status Pengembalian</option>
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
             </select>
 
-            <!-- Filter Berdasarkan Status Peminjaman -->
-            <label for="statusPinjam" class=" fw-bold">Filter berdasarkan status peminjaman:</label>
-            <select id="statusPinjam" class="form-select  mx-4" v-model="filterStatus">
-              <option value="">Semua Status Pinjaman</option>
-              <option value="Dipinjam">Dipinjam</option>
-              <option value="Dikembalikan">Dikembalikan</option>
-            </select>
-
             <div class="d-flex justify-content-between">
               <button class="btn bg-ijomuda mt-3 text-white" @click="applyFilters">Terapkan Filter</button>
-              <button class="btn btn-secondary mt-3" @click="resetFilter">Reset Filter</button>
+              <button class="btn bg-kuning mt-3" @click="resetFilter">Reset Filter</button>
             </div>
           </div>
 
-          <button class="btn btn-danger " @click="closeFilterModal">Tutup</button>
+          <button class="btn bg-merah" @click="closeFilterModal">Tutup</button>
+        </div>
+      </div>
+
+      <!-- Modal Update Status Pengembalian -->
+      <div v-if="isUpdateModalOpen" class="modal-overlay" @click="closeUpdateModal">
+        <div class="modal-content" @click.stop>
+          <h4 class="text-center">Update Status Pengembalian</h4>
+          <div class="filter-section">
+            <label for="updateStatusPengembalian" class="fw-bold">Status Pengembalian:</label>
+            <select id="updateStatusPengembalian" class="form-select mx-4" v-model="updateStatusPengembalian">
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+
+            <div class="d-flex justify-content-between">
+              <button class="btn bg-ijomuda mt-3 text-white" @click="submitUpdateStatus">Simpan Perubahan</button>
+              <button class="btn bg-kuning mt-3" @click="closeUpdateModal">Tutup</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -63,48 +88,80 @@
         <thead class="bg-ijomuda text-white">
           <tr>
             <th>#</th>
-            <th>ID User</th>
             <th>Buku</th>
             <th>Jumlah Buku</th>
             <th>Tanggal Pinjam</th>
             <th>Tanggal Kembali</th>
-            <th>Status Peminjaman</th>
             <th>Status Pengembalian</th>
             <th>Denda</th>
+            <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(item, index) in filteredData" :key="item.id_peminjaman">
             <td>{{ index + 1 }}</td>
-            <td>{{ item.id_user }}</td>
             <td>{{ item.buku.judul }}</td>
             <td>{{ item.jumlah_pinjam }}</td>
             <td>{{ new Date(item.tanggal_pinjam).toLocaleDateString() }}</td>
             <td>{{ new Date(item.tanggal_kembali).toLocaleDateString() }}</td>
-            <td>
-              <span :class="item.status_kembali ? 'text-success' : 'text-danger'">
-                {{ item.status_kembali ? 'Dikembalikan' : 'Dipinjam' }}
-              </span>
-            </td>
             <td>
               <span :class="getStatusClass(item.status_pengembalian)">
                 {{ item.status_pengembalian }}
               </span>
             </td>
             <td>Rp {{ item.denda.toLocaleString() }}</td>
+            <td class="d-flex align-items-center">
+              <button @click="openUpdateModal(item)" class="btn bg-kuning btn-sm"><b-icon-pencil></b-icon-pencil></button>
+              <button @click="deletePeminjaman(item.id_peminjaman)" class="btn bg-merah btn-sm"><b-icon-trash></b-icon-trash></button>
+            </td>
           </tr>
           <tr v-if="filteredData.length === 0">
-            <td colspan="9" class="text-center">Tidak ada data peminjaman untuk filter yang dipilih</td>
+            <td colspan="8" class="text-center">Tidak ada data peminjaman untuk filter yang dipilih</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Success Notification Modal for Edit -->
+    <NotificationModal
+      v-if="showSuccessEditModal"
+      :isVisible="showSuccessEditModal"
+      :messageTitle="'Edit Berhasil'"
+      :messageBody="successEditMessage"
+      @close="closeSuccessEditModal"
+    />
+
+    <!-- Success Notification Modal for Delete -->
+    <NotificationModal
+      v-if="showSuccessModal"
+      :isVisible="showSuccessModal"
+      :messageTitle="successTitle"
+      :messageBody="successMessage"
+      @close="closeSuccessModal"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <NotificationModal
+      v-if="showDeleteConfirmation"
+      :isVisible="showDeleteConfirmation"
+      :messageTitle="'Konfirmasi Hapus'"
+      :messageBody="'Apakah Anda yakin ingin menghapus peminjaman ini?'"
+      @close="cancelDelete"
+    >
+      <template #footer>
+        <button @click="confirmDelete" class="btn btn-abu">Ya, Hapus</button>
+        <button @click="cancelDelete" class="btn btn-cancel">Batal</button>
+      </template>
+    </NotificationModal>
   </div>
 </template>
 
 <script>
-import { getAllPeminjaman } from "@/api/peminjaman";
+import { getAllPeminjaman, updatePeminjaman, deletePeminjaman as deletePeminjamanApi } from "@/api/peminjaman";
+import { getBukuList } from "@/api/buku";
+import { getUsers } from "@/api/user"; // Import data pengguna
 import AppNavbar from "~/components/AppNavbar.vue";
+import * as XLSX from 'xlsx';
 
 export default {
   components: {
@@ -114,23 +171,53 @@ export default {
     return {
       dataPeminjaman: [],
       books: [], // Daftar buku untuk dropdown
+      users: [], // Daftar pengguna untuk dropdown email
       selectedDate: "",
       selectedStatus: "",
       selectedReturnDate: "",
       filterStatus: "",
       selectedBookName: "", // Filter berdasarkan nama buku
       selectedUserId: "", // Filter berdasarkan ID User
+      selectedUserEmail: "", // Filter berdasarkan email pengguna
       filteredData: [],
       isModalOpen: false,
+      searchEmail: "", // State untuk pencarian email
+      filteredUsers: [], // Users setelah pencarian
+      isUpdateModalOpen: false,
+      updateStatusPengembalian: "", // Status pengembalian yang akan diupdate
+      currentPeminjamanId: null, // ID peminjaman yang sedang diupdate
+      showSuccessModal: false, // State untuk modal notifikasi sukses hapus
+      successTitle: '', // Judul untuk modal notifikasi sukses hapus
+      successMessage: '', // Pesan untuk modal notifikasi sukses hapus
+      showSuccessEditModal: false, // State untuk modal notifikasi sukses edit
+      successEditMessage: 'Data berhasil diperbarui.', // Pesan untuk modal notifikasi sukses edit
+      showDeleteConfirmation: false, // State untuk modal konfirmasi hapus
     };
   },
   async mounted() {
     try {
+      // Ambil data peminjaman
       this.dataPeminjaman = await getAllPeminjaman();
-      this.books = this.dataPeminjaman.map(item => item.buku); // Mengambil daftar buku
       this.filteredData = this.dataPeminjaman;
+
+      // Ambil data buku untuk dropdown
+      const bukuList = await getBukuList();
+      this.books = bukuList;
+
+      // Ambil data pengguna untuk dropdown email
+      const userList = await getUsers(); // Ambil data pengguna
+      this.users = userList;
     } catch (error) {
-      console.error("Gagal memuat data peminjaman:", error);
+      console.error("Gagal memuat data:", error);
+    }
+  },
+  watch: {
+    searchEmail(value) {
+      this.filteredUsers = this.users.filter(user =>
+        user.email.toLowerCase().includes(value.toLowerCase())
+      );
+      // Re-filter data berdasarkan email pencarian
+      this.filterData();
     }
   },
   methods: {
@@ -150,7 +237,7 @@ export default {
       // Filter berdasarkan nama buku
       if (this.selectedBookName) {
         filtered = filtered.filter((item) =>
-          item.buku.judul.toLowerCase().includes(this.selectedBookName.toLowerCase())
+          item.buku.judul.toLowerCase() === this.selectedBookName.toLowerCase()
         );
       }
 
@@ -159,12 +246,22 @@ export default {
         filtered = filtered.filter((item) => item.id_user === parseInt(this.selectedUserId));
       }
 
+      // Filter berdasarkan email pengguna
+      if (this.selectedUserEmail) {
+        filtered = filtered.filter((item) => item.user.email === this.selectedUserEmail);
+      }
+
       // Filter berdasarkan tanggal pinjam
       if (this.selectedDate) {
         filtered = filtered.filter(
-          (item) =>
-            new Date(item.tanggal_pinjam).toISOString().split("T")[0] ===
-            this.selectedDate
+          (item) => new Date(item.tanggal_pinjam).toLocaleDateString() === new Date(this.selectedDate).toLocaleDateString()
+        );
+      }
+
+      // Filter berdasarkan tanggal kembali
+      if (this.selectedReturnDate) {
+        filtered = filtered.filter(
+          (item) => new Date(item.tanggal_kembali).toLocaleDateString() === new Date(this.selectedReturnDate).toLocaleDateString()
         );
       }
 
@@ -175,69 +272,162 @@ export default {
         );
       }
 
-      // Filter berdasarkan status peminjaman (Dipinjam / Dikembalikan)
+      // Filter berdasarkan status peminjaman
       if (this.filterStatus) {
         filtered = filtered.filter(
-          (item) =>
-            (this.filterStatus === "Dipinjam" && !item.status_kembali) ||
-            (this.filterStatus === "Dikembalikan" && item.status_kembali)
-        );
-      }
-
-      // Filter berdasarkan tanggal kembali
-      if (this.selectedReturnDate) {
-        filtered = filtered.filter(
-          (item) =>
-            new Date(item.tanggal_kembali).toISOString().split("T")[0] ===
-            this.selectedReturnDate
+          (item) => item.status === this.filterStatus
         );
       }
 
       this.filteredData = filtered;
     },
     resetFilter() {
+      this.selectedBookName = "";
+      this.selectedUserEmail = "";
       this.selectedDate = "";
-      this.selectedStatus = "";
       this.selectedReturnDate = "";
+      this.selectedStatus = "";
       this.filterStatus = "";
-      this.selectedBookName = ""; // Reset nama buku
-      this.selectedUserId = ""; // Reset ID User
+      this.searchEmail = "";
       this.filteredData = this.dataPeminjaman;
     },
+    exportToExcel() {
+      // Membuat array baru untuk menyimpan data yang akan diekspor
+      const exportData = this.filteredData.map((item, index) => ({
+        No: index + 1,
+        Buku: item.buku.judul,
+        Jumlah: item.jumlah_pinjam,
+        TanggalPinjam: new Date(item.tanggal_pinjam).toLocaleDateString(),
+        TanggalKembali: new Date(item.tanggal_kembali).toLocaleDateString(),
+        StatusPengembalian: item.status_pengembalian,
+        Denda: `Rp ${item.denda.toLocaleString()}`,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Peminjaman');
+      XLSX.writeFile(workbook, 'Data Peminjaman.xlsx');
+    },
     getStatusClass(status) {
-      return status === "Pending"
-        ? "text-warning"
-        : status === "Approved"
-          ? "text-success"
-          : "text-danger";
+      if (status === "Pending") return "text-warning";
+      if (status === "Approved") return "text-success";
+      if (status === "Rejected") return "text-danger";
+      return "";
+    },
+    openUpdateModal(item) {
+      this.currentPeminjamanId = item.id_peminjaman;
+      this.updateStatusPengembalian = item.status_pengembalian; // Mengisi status pengembalian saat modal dibuka
+      this.isUpdateModalOpen = true;
+    },
+    closeUpdateModal() {
+      this.isUpdateModalOpen = false;
+      this.resetUpdateForm();
+    },
+    resetUpdateForm() {
+      this.updateStatusPengembalian = "";
+      this.currentPeminjamanId = null;
+    },
+    async submitUpdateStatus() {
+      try {
+        // Kirim pembaruan status pengembalian ke API
+        const updatedData = await updatePeminjaman(this.currentPeminjamanId, {
+          status_pengembalian: this.updateStatusPengembalian,
+        });
+
+        console.log("Respons dari server setelah pembaruan:", updatedData);
+
+        // Pastikan respons berisi data yang diharapkan
+        if (updatedData) {
+          // Temukan item yang diperbarui dalam filteredData dan perbarui statusnya
+          const index = this.filteredData.findIndex(item => item.id_peminjaman === this.currentPeminjamanId);
+          if (index !== -1) {
+            // Ganti item yang diperbarui dengan data dari respons
+            this.$set(this.filteredData, index, updatedData); // Perbarui item dengan data terbaru dari server
+
+            // Ubah status peminjaman dan status kembali berdasarkan status pengembalian
+            if (updatedData.status_pengembalian === 'Approved' || updatedData.status_pengembalian === 'Pending') {
+              console.log("Mengubah status peminjaman menjadi 'Dikembalikan' dan status kembali menjadi true");
+              this.filteredData[index].status = 'Dikembalikan'; // Ubah status peminjaman menjadi 'Dikembalikan'
+              this.filteredData[index].status_kembali = true; // Ubah status kembali menjadi true
+            } else if (updatedData.status_pengembalian === 'Rejected') {
+              console.log("Mengubah status peminjaman menjadi 'Dipinjam' dan status kembali menjadi false");
+              this.filteredData[index].status = 'Dipinjam'; // Ubah status peminjaman menjadi 'Dipinjam'
+              this.filteredData[index].status_kembali = false; // Ubah status kembali menjadi false
+            }
+          }
+
+          // Tampilkan modal notifikasi sukses edit
+          this.showSuccessEditModal = true; // Tampilkan modal sukses edit
+
+          // Ambil kembali data peminjaman setelah pembaruan
+          this.dataPeminjaman = await getAllPeminjaman();
+          this.filteredData = this.dataPeminjaman; // Perbarui filteredData
+        }
+
+        this.closeUpdateModal();
+      } catch (error) {
+        console.error("Gagal memperbarui status pengembalian:", error);
+      }
+    },
+    async deletePeminjaman(id) {
+      this.showDeleteConfirmation = true; // Tampilkan modal konfirmasi hapus
+      this.currentPeminjamanId = id; // Simpan ID peminjaman yang akan dihapus
+    },
+    async confirmDelete() {
+      try {
+        await deletePeminjamanApi(this.currentPeminjamanId);
+        this.filteredData = this.filteredData.filter(item => item.id_peminjaman !== this.currentPeminjamanId);
+        this.showSuccessModal = true; // Tampilkan modal sukses setelah penghapusan
+        this.successTitle = 'Success';
+        this.successMessage = 'Data berhasil dihapus.';
+      } catch (error) {
+        console.error("Gagal menghapus peminjaman:", error);
+      } finally {
+        this.showDeleteConfirmation = false; // Tutup modal konfirmasi hapus
+      }
+    },
+    cancelDelete() {
+      this.showDeleteConfirmation = false; // Tutup modal konfirmasi hapus
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false; // Tutup modal notifikasi sukses
+    },
+    closeSuccessEditModal() {
+      this.showSuccessEditModal = false; // Tutup modal notifikasi sukses edit
     },
   },
 };
 </script>
 
 <style scoped>
+.admin-peminjaman {
+  max-width: 1200px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4); /* Lebih transparan */
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999999;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.3s ease; /* Efek transisi */
-  z-index: 9999999;
+  transition: opacity 0.3s ease;
 }
 
 .modal-content {
   background-color: #fff;
   padding: 30px;
   width: 500px;
-  border-radius: 12px; /* Sudut lebih melengkung */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Bayangan */
-  animation: modalFadeIn 0.3s ease-out; /* Animasi muncul */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease-out;
 }
 
 @keyframes modalFadeIn {
@@ -257,7 +447,7 @@ h4 {
   text-align: center;
 }
 
-label{
+label {
   margin: 0;
   margin-top: 5px;
   color: #bbff00;
@@ -272,7 +462,8 @@ label{
   color: #333;
 }
 
-.filter-section input, .filter-section select {
+.filter-section input,
+.filter-section select {
   width: calc(100% - 40px);
   padding: 10px;
   margin-top: 8px;
@@ -309,8 +500,6 @@ button.btn-secondary:hover {
   background-color: #5a6268;
 }
 
-
-
 button.btn-danger {
   background-color: #e74c3c;
   border: none;
@@ -319,10 +508,6 @@ button.btn-danger {
 
 button.btn-danger:hover {
   background-color: #c0392b;
-}
-
-.d-flex {
-  justify-content: flex-end;
 }
 
 .d-flex button {

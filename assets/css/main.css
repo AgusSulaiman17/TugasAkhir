@@ -34,7 +34,7 @@
 }
 
 .bg-ijotua{
-  background: #2e3b33;
+  background: #1e3630;
 }
 
 .text-ijomuda{
@@ -42,5 +42,165 @@
 }
 
 .text-ijotua{
-  color: #2e3b33;
+  color: #334339;
 }
+.btn.bg-ijomuda {
+  background-color: #70a799;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.bg-ijomuda::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease-in-out;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.btn.bg-ijomuda:hover {
+  background-color: #5e9278;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px); /* Mengangkat tombol sedikit */
+}
+
+.btn.bg-ijomuda:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.btn.bg-ijomuda:active {
+  transform: translateY(2px); /* Memberikan efek tekan tombol */
+}
+
+.btn.bg-ijotua {
+  background-color: #263e38;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.bg-ijotua::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease-in-out;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.btn.bg-ijotua:hover {
+  background-color: #3b5c4b;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px); /* Mengangkat tombol sedikit */
+}
+
+.btn.bg-ijotua:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.btn.bg-ijotua:active {
+  transform: translateY(2px); /* Memberikan efek tekan tombol */
+}
+
+.btn.bg-merah {
+  background-color: #b22222; /* Warna merah */
+  color: #fff;
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.bg-merah::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease-in-out;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.btn.bg-merah:hover {
+  background-color: #d62d2d; /* Warna merah lebih terang */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px); /* Mengangkat tombol sedikit */
+}
+
+.btn.bg-merah:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.btn.bg-merah:active {
+  transform: translateY(2px); /* Memberikan efek tekan tombol */
+}
+
+.btn.bg-kuning {
+  background-color: #ffc107; /* Warna kuning */
+  color: #fff;
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn.bg-kuning::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease-in-out;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.btn.bg-kuning:hover {
+  background-color: #e6ac00; /* Warna kuning lebih gelap saat hover */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px); /* Mengangkat tombol sedikit */
+}
+
+.btn.bg-kuning:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.btn.bg-kuning:active {
+  transform: translateY(2px); /* Memberikan efek tekan tombol */
+}
+

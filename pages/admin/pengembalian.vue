@@ -2,7 +2,7 @@
   <div>
     <AppNavbar />
     <div class="container mt-8">
-      <h2 class="mb-4 text-center text-ijomuda">Konfirmasi Pengembalian Buku</h2>
+      <h2 class="mb-4 text-center text-ijotua">Konfirmasi Pengembalian Buku</h2>
 
       <!-- Tampilkan Pesan Error -->
       <div v-if="error" class="alert alert-danger text-center">{{ error }}</div>
@@ -50,15 +50,23 @@
                   <div class="d-flex flex-column gap-2">
                     <button
                       @click="verifyReturn(item.id_peminjaman)"
-                      class="btn btn-outline-success btn-sm"
+                      class="btn bg-ijomuda btn-sm"
+                      :disabled="loadingAction === item.id_peminjaman"
                     >
-                      Konfirmasi
+                      <span v-if="loadingAction !== item.id_peminjaman">Konfirmasi</span>
+                      <div v-else class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
                     </button>
                     <button
                       @click="showRejectModal(item.id_peminjaman)"
-                      class="btn btn-outline-danger btn-sm"
+                      class="btn bg-merah mt-2 btn-sm"
+                      :disabled="loadingAction === item.id_peminjaman"
                     >
-                      Tolak
+                      <span v-if="loadingAction !== item.id_peminjaman">Tolak</span>
+                      <div v-else class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -74,13 +82,17 @@
                   <div class="d-flex gap-2 mt-2 mb-2">
                     <button
                       @click="rejectReturn(item.id_peminjaman)"
-                      class="btn btn-warning shadow-sm mr-2"
+                      class="btn bg-kuning shadow-sm mr-2"
+                      :disabled="loadingAction === item.id_peminjaman"
                     >
-                      Kirim Alasan
+                      <span v-if="loadingAction !== item.id_peminjaman">Kirim Alasan</span>
+                      <div v-else class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
                     </button>
                     <button
                       @click="cancelRejectModal"
-                      class="btn btn-secondary shadow-sm"
+                      class="btn bg-merah shadow-sm"
                     >
                       Batal
                     </button>
@@ -92,17 +104,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Success Notification Modal -->
+    <NotificationModal
+      v-if="showSuccessModal"
+      :isVisible="showSuccessModal"
+      :messageTitle="successTitle"
+      :messageBody="successMessage"
+      @close="closeSuccessModal"
+    />
   </div>
 </template>
-
 
 <script>
 import { getPengembalianPending, verifyReturn, rejectReturn } from "@/api/peminjaman";
 import AppNavbar from "~/components/AppNavbar.vue";
+import NotificationModal from "~/components/NotificationModal.vue";
 
 export default {
   components: {
     AppNavbar,
+    NotificationModal,
   },
   data() {
     return {
@@ -111,6 +133,10 @@ export default {
       error: null,
       isRejecting: null,
       rejectionReason: "",
+      loadingAction: null,
+      showSuccessModal: false,
+      successTitle: "",
+      successMessage: "",
     };
   },
   methods: {
@@ -126,12 +152,15 @@ export default {
       }
     },
     async verifyReturn(id) {
+      this.loadingAction = id; // Set loadingAction saat aksi dimulai
       try {
         await verifyReturn(id);
-        alert("Pengembalian berhasil dikonfirmasi!");
+        this.showSuccessNotification("Konfirmasi Pengembalian", "Pengembalian berhasil dikonfirmasi!");
         this.fetchPengembalianPending();
       } catch (error) {
         this.error = "Gagal mengonfirmasi pengembalian. Coba lagi nanti.";
+      } finally {
+        this.loadingAction = null;
       }
     },
     async rejectReturn(id) {
@@ -139,14 +168,17 @@ export default {
         alert("Alasan penolakan harus diisi.");
         return;
       }
+      this.loadingAction = id;
       try {
         await rejectReturn(id, { alasan: this.rejectionReason });
-        alert("Pengembalian berhasil ditolak!");
+        this.showSuccessNotification("Tolak Pengembalian", "Pengembalian berhasil ditolak!");
         this.fetchPengembalianPending();
         this.isRejecting = null;
         this.rejectionReason = "";
       } catch (error) {
         this.error = "Gagal menolak pengembalian. Coba lagi nanti.";
+      } finally {
+        this.loadingAction = null;
       }
     },
     showRejectModal(id) {
@@ -160,9 +192,17 @@ export default {
       return amount?.toLocaleString("id-ID") || "0";
     },
     cancelRejectModal() {
-    this.isRejecting = null;
-    this.rejectionReason = "";
-  },
+      this.isRejecting = null;
+      this.rejectionReason = "";
+    },
+    showSuccessNotification(title, message) {
+      this.successTitle = title;
+      this.successMessage = message;
+      this.showSuccessModal = true;
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false;
+    },
   },
   mounted() {
     this.fetchPengembalianPending();
@@ -171,6 +211,16 @@ export default {
 </script>
 
 <style scoped>
+/* Style tambahan untuk spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.modal-backdrop {
+  z-index: 1040;
+}
+
 .card {
   border-radius: 12px;
   overflow: hidden;

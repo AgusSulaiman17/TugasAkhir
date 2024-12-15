@@ -1,40 +1,31 @@
 <template>
   <div>
-    <LoadingSpinner v-if="isLoading" />
     <AppNavbar />
     <div class="user-dashboard mt-8">
       <div class="welcome-card">
         <div class="card-body">
-          <h2 class="card-title">📚 Dashboard Peminjaman Buku</h2>
-          <p class="card-text">
-            Selamat datang, <span class="user-name">{{ userName }}</span>!<br />
+          <h2 class="card-title">Dashboard Peminjaman Buku</h2>
+          <p v-if="user.role === 'user'" class="card-text">
+            Selamat datang, <span class="user-name"> {{ user.nama }} </span>!<br />
             Lihat status peminjaman buku Anda dan temukan buku menarik lainnya.
+          </p>
+          <p v-if="user.role === 'petugas'" class="card-text">
+            Selamat datang Petugas, <span class="user-name"> {{ user.nama }} </span>!<br />
+            Buat Peminjaman, Verifikasi Peminjaman, dan Lihat Peminjaman Disini
           </p>
         </div>
       </div>
-
-      <div class="cards-container">
-        <div
-          v-for="(item, index) in content"
-          :key="index"
-          class="card feature-card"
-        >
-          <div class="card-body">
-            <h5 class="card-title">{{ item.judul }}</h5>
-            <p class="card-subtitle">{{ item.deskripsi }}</p>
-            <button @click="navigateTo(item.link)" class="btn btn-primary">
-              Lihat {{ item.judul }}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
+    <SliderBuku />
+    <AppFooter />
   </div>
 </template>
 
 <script>
+import AppFooter from "~/components/AppFooter.vue";
 import AppNavbar from "~/components/AppNavbar.vue";
 import LoadingSpinner from "~/components/LoadingSpinner.vue";
+import SliderBuku from "~/components/SliderBuku.vue";
 
 export default {
   middleware: "auth",
@@ -42,64 +33,26 @@ export default {
   components: {
     AppNavbar,
     LoadingSpinner,
-  },
-  data() {
-    return {
-      userName: "User", // Ganti ini dengan data dari API atau Vuex
-      content: [
-        {
-          judul: "Riwayat Peminjaman",
-          deskripsi: "Lihat buku-buku yang pernah Anda pinjam.",
-          link: "riwayat",
-        },
-        {
-          judul: "Buku yang Dipinjam",
-          deskripsi: "Pantau status buku yang sedang dipinjam.",
-          link: "peminjaman",
-        },
-        {
-          judul: "Cari Buku",
-          deskripsi: "Temukan buku menarik untuk dipinjam.",
-          link: "cariBuku",
-        },
-        {
-          judul: "Pengaturan Akun",
-          deskripsi: "Kelola informasi akun Anda.",
-          link: "pengaturan",
-        },
-      ],
-    };
+    SliderBuku,
+    AppFooter
   },
   computed: {
+    user() {
+      return this.$store.getters.getUser;
+    },
     isLoading() {
-      return this.$store.state.isLoading;
-    },
-  },
-  methods: {
-    navigateTo(link) {
-      if (link) {
-        this.$store.dispatch("navigateWithLoading", {
-          path: `/user/${link}`,
-          router: this.$router,
-        });
-      }
-    },
+    return this.$store.getters.isLoading;
+  }
   },
 };
 </script>
 
 <style scoped>
-.user-dashboard {
-  padding: 2rem;
-  margin-top: 100px;
-  background: linear-gradient(135deg, #f6faff, #eef7ff);
-  min-height: 100vh;
-}
-
 .welcome-card {
-  background-color: #ffffff;
+  background: linear-gradient(to right, #70a799, #a8d5ba); /* Hijau Pastel ke Hijau Mint */
+  color: #ffffff;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 2.5rem;
   margin-bottom: 2.5rem;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -111,88 +64,81 @@ export default {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
+.user-dashboard {
+  padding: 2rem;
+  margin-top: 100px;
+}
+
 .user-name {
-  color: #007bff;
   font-weight: bold;
+  text-transform: capitalize;
 }
 
-.cards-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  justify-content: center;
-}
-
-.feature-card {
-  width: 280px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.feature-card:before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(0, 123, 255, 0.2), transparent);
-  transform: scale(0);
-  transition: transform 0.5s;
-  z-index: -1;
-}
-
-.feature-card:hover:before {
-  transform: scale(1);
-}
-
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-}
-
-.card-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.card-subtitle {
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-  color: #555;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: #ffffff;
+.btn {
+  display: inline-block;
+  margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s, transform 0.3s;
+  font-weight: bold;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.3s;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
+.primary-btn {
+  background-color: #70a799; /* Hijau Pastel */
+  color: #ffffff;
 }
 
-/* Responsif */
-@media (max-width: 768px) {
-  .cards-container {
-    flex-direction: column;
-    align-items: center;
-  }
+.primary-btn:hover {
+  background-color: #559f86; /* Hijau Lebih Gelap */
+}
 
-  .feature-card {
-    width: 90%;
-  }
+.secondary-btn {
+  background-color: #a8d5ba; /* Hijau Mint */
+  color: #ffffff;
+}
+
+.secondary-btn:hover {
+  background-color: #8cc5a7; /* Hijau Mint Lebih Gelap */
+}
+
+.action-cards {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.action-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  flex: 1;
+  min-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-align: center;
+}
+
+.action-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.action-card img {
+  max-width: 100px;
+  margin-bottom: 1rem;
+}
+
+.action-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-card p {
+  font-size: 1rem;
+  color: #666666;
+  margin-bottom: 1.5rem;
 }
 </style>

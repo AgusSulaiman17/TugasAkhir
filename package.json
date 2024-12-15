@@ -20,12 +20,14 @@
     "cookie-universal-nuxt": "^2.2.2",
     "core-js": "^3.25.3",
     "js-cookie": "^3.0.5",
+    "jspdf": "https://github.com/parallax/jsPDF/archive/refs/tags/v2.4.0.tar.gz",
     "nuxt": "^2.15.8",
     "swiper": "^6.8.4",
     "vue": "^2.7.10",
     "vue-loading-overlay": "^3.4.0",
     "vue-server-renderer": "^2.7.10",
-    "vue-template-compiler": "^2.7.10"
+    "vue-template-compiler": "^2.7.10",
+    "xlsx": "https://github.com/SheetJS/js-xlsx/archive/refs/tags/v0.18.3.tar.gz"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.19.1",

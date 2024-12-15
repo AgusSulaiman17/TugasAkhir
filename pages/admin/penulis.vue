@@ -1,66 +1,87 @@
 <template>
   <div class="penulis mt-8">
     <AppNavbar />
-    <div class="container">
-      <h1 class="title">Manage Authors</h1>
+    <div class="container mx-auto" style="max-width: 1200px;">
+      <h1 class="text-center mb-4">Manage Authors</h1>
 
-      <!-- Tombol untuk membuka modal tambah penulis -->
-      <button @click="openAddPenulisModal" class="btn btn-primary">Add Author</button>
+      <!-- Button to open Add Author modal -->
+      <button @click="openAddPenulisModal" class="btn bg-ijotua mb-4">Add Author<b-icon-plus></b-icon-plus></button>
 
-      <!-- Modal untuk menambah penulis -->
+      <!-- Author Table -->
+      <table class="table table-striped table-bordered text-center">
+        <thead class="bg-ijomuda text-white">
+          <tr>
+            <th>#</th>
+            <th>Author Name</th>
+            <th>Biography</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(penulisItem, index) in penulis" :key="penulisItem.id_penulis">
+            <td>{{ index + 1 }}</td>
+            <td>{{ penulisItem.nama }}</td>
+            <td v-if="penulisItem.biografi" class="biography-text">{{ penulisItem.biografi }}</td>
+            <td>
+              <button @click="editPenulis(penulisItem)" class="btn bg-kuning btn-sm"><b-icon-pencil></b-icon-pencil></button>
+              <button @click="openDeleteConfirmation(penulisItem)" class="btn bg-merah btn-sm"><b-icon-trash></b-icon-trash></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p v-if="penulis.length === 0" class="text-center mt-4">No authors available. Add a new one!</p>
+
+      <!-- Add Author Modal -->
       <div v-if="isAddPenulisModalOpen" class="modal-overlay" @click="closeAddPenulisModal">
-        <div class="modal" @click.stop>
-          <h2 class="mt-5">Add New Author</h2>
-          <input v-model="newPenulis" placeholder="Enter author name" class="input" />
-          <textarea v-model="newBiografi" placeholder="Enter author biography" class="input" rows="4"></textarea>
-          <div class="modal-actions">
-            <button @click="createPenulis" class="btn btn-abu mt-2">Add Author</button>
-            <button @click="closeAddPenulisModal" class="btn btn-cancel">Cancel</button>
+        <div class="modal-content" @click.stop>
+          <h4 class="text-center mb-4">Add New Author</h4>
+          <input v-model="newPenulis" placeholder="Enter author name" class="form-control mb-4" />
+          <textarea v-model="newBiografi" placeholder="Enter author biography" class="form-control mb-4" rows="4"></textarea>
+          <div class="d-flex justify-content-between">
+            <button @click="createPenulis" class="btn bg-ijomuda">Add Author</button>
+            <button @click="closeAddPenulisModal" class="btn bg-ijotua">Cancel</button>
           </div>
         </div>
       </div>
 
-      <!-- Modal untuk mengedit penulis -->
+      <!-- Edit Author Modal -->
       <div v-if="isEditing" class="modal-overlay" @click="cancelEdit">
-        <div class="modal" @click.stop>
-          <h2 class="mt-5">Edit Author</h2>
-          <input v-model="editedPenulis" placeholder="Edit author name" class="input" />
-          <textarea v-model="editedBiografi" placeholder="Edit author biography" class="input" rows="4"></textarea>
-          <div class="modal-actions">
-            <button @click="updatePenulis" class="btn btn-abu mt-2">Save Changes</button>
-            <button @click="cancelEdit" class="btn btn-cancel">Cancel</button>
+        <div class="modal-content" @click.stop>
+          <h4 class="text-center mb-4">Edit Author</h4>
+          <input v-model="editedPenulis" placeholder="Edit author name" class="form-control mb-4" />
+          <textarea v-model="editedBiografi" placeholder="Edit author biography" class="form-control mb-4" rows="4"></textarea>
+          <div class="d-flex justify-content-between">
+            <button @click="updatePenulis" class="btn bg-ijomuda">Save Changes</button>
+            <button @click="cancelEdit" class="btn bg-ijotua">Cancel</button>
           </div>
         </div>
       </div>
 
-      <div v-if="penulis.length" class="penulis-list">
-        <ul>
-          <li v-for="penulisItem in penulis" :key="penulisItem.id_penulis" class="penulis-item">
-            <span>{{ penulisItem.nama }}</span>
-            <span v-if="penulisItem.biografi" class="biography-text">{{ penulisItem.biografi }}</span>
-            <div class="penulis-actions">
-              <button @click="editPenulis(penulisItem.id_penulis)" class="btn btn-edit">Edit</button>
-              <button @click="deletePenulis(penulisItem.id_penulis)" class="btn btn-delete">Delete</button>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <div v-else class="empty-message">
-        <p>No authors available. Add a new one!</p>
-      </div>
-
-      <!-- Edit Section for managing penulis -->
-      <div v-if="isEditing" class="edit-section">
-        <h2>Edit Author</h2>
-        <input v-model="editedPenulis" placeholder="Edit author name" class="input" />
-        <textarea v-model="editedBiografi" placeholder="Edit author biography" class="input" rows="4"></textarea>
-        <div class="edit-actions">
-          <button @click="updatePenulis" class="btn btn-update">Save Changes</button>
-          <button @click="cancelEdit" class="btn btn-cancel">Cancel</button>
-        </div>
-      </div>
     </div>
+
+    <!-- Success Notification Modal -->
+    <NotificationModal
+      v-if="showSuccessModal"
+      :isVisible="showSuccessModal"
+      :messageTitle="successTitle"
+      :messageBody="successMessage"
+      @close="closeSuccessModal"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <NotificationModal
+      v-if="showDeleteConfirmation"
+      :isVisible="showDeleteConfirmation"
+      :messageTitle="'Delete Author'"
+      :messageBody="'Are you sure you want to delete this author?'"
+      @close="cancelDelete"
+    >
+      <template #footer>
+        <button @click="confirmDelete" class="btn btn-abu">Yes, Delete</button>
+        <button @click="cancelDelete" class="btn btn-cancel">Cancel</button>
+      </template>
+    </NotificationModal>
   </div>
 </template>
 
@@ -68,22 +89,29 @@
 import { getPenulis, createPenulis, updatePenulis, deletePenulis } from '~/api/penulis';
 import AppNavbar from '~/components/AppNavbar.vue';
 
+
 export default {
   middleware: 'admin',
   name: 'Penulis',
   components: {
-    AppNavbar
+    AppNavbar,
+    NotificationModal: () => import('~/components/NotificationModal.vue')
   },
   data() {
     return {
       penulis: [],
       newPenulis: '',
-      newBiografi: '', // Menambahkan state untuk biografi baru
+      newBiografi: '',
       editedPenulis: '',
-      editedBiografi: '', // Menambahkan state untuk biografi yang diedit
+      editedBiografi: '',
       isEditing: false,
       penulisToEdit: null,
       isAddPenulisModalOpen: false,
+      showSuccessModal: false,
+      successTitle: '',
+      successMessage: '',
+      showDeleteConfirmation: false,
+      penulisToDelete: null,
     };
   },
   created() {
@@ -99,48 +127,76 @@ export default {
     },
     async createPenulis() {
       if (!this.newPenulis.trim()) {
-        alert('Nama penulis tidak boleh kosong!');
-        return; // Berhenti jika input kosong
+        alert('Author name cannot be empty!');
+        return;
       }
-
       try {
         const penulis = { nama: this.newPenulis, biografi: this.newBiografi };
         const newPenulis = await createPenulis(penulis);
         this.penulis.push(newPenulis);
-        this.newPenulis = '';
-        this.newBiografi = ''; // Reset biografi setelah penulis baru ditambahkan
-        this.closeAddPenulisModal();
+        this.resetAddPenulisForm();
+        this.showSuccessNotification('Success', 'Author successfully added!');
       } catch (error) {
         console.error('Error creating author', error);
       }
+    },
+    async updatePenulis() {
+      if (!this.editedPenulis.trim()) {
+        alert('Author name cannot be empty!');
+        return;
+      }
+      try {
+        const updatedPenulis = { nama: this.editedPenulis, biografi: this.editedBiografi };
+        const penulis = await updatePenulis(this.penulisToEdit.id_penulis, updatedPenulis);
+        const index = this.penulis.findIndex((p) => p.id_penulis === penulis.id_penulis);
+        this.penulis.splice(index, 1, penulis);
+        this.cancelEdit();
+        this.showSuccessNotification('Success', 'Author successfully updated!');
+      } catch (error) {
+        console.error('Error updating author', error);
+      }
+    },
+    async deletePenulis(id) {
+      try {
+        await deletePenulis(id);
+        this.penulis = this.penulis.filter((penulisItem) => penulisItem.id_penulis !== id);
+        this.showSuccessNotification('Success', 'Author successfully deleted!');
+      } catch (error) {
+        console.error('Error deleting author', error);
+      }
+    },
+
+    // Open confirmation modal
+    openDeleteConfirmation(penulisItem) {
+      this.penulisToDelete = penulisItem;
+      this.showDeleteConfirmation = true;
+    },
+
+    // Cancel delete operation
+    cancelDelete() {
+      this.penulisToDelete = null;
+      this.showDeleteConfirmation = false;
+    },
+
+    // Confirm delete operation
+    confirmDelete() {
+      if (this.penulisToDelete) {
+        this.deletePenulis(this.penulisToDelete.id_penulis);
+      }
+      this.cancelDelete();
     },
     openAddPenulisModal() {
       this.isAddPenulisModalOpen = true;
     },
     closeAddPenulisModal() {
       this.isAddPenulisModalOpen = false;
-      this.newPenulis = ''; // Reset input saat modal ditutup
-      this.newBiografi = ''; // Reset biografi saat modal ditutup
+      this.resetAddPenulisForm();
     },
-    editPenulis(id) {
-      this.penulisToEdit = this.penulis.find((penulisItem) => penulisItem.id_penulis === id);
-      this.editedPenulis = this.penulisToEdit.nama;
-      this.editedBiografi = this.penulisToEdit.biografi;
+    editPenulis(penulisItem) {
+      this.penulisToEdit = penulisItem;
+      this.editedPenulis = penulisItem.nama;
+      this.editedBiografi = penulisItem.biografi;
       this.isEditing = true;
-    },
-    async updatePenulis() {
-      try {
-        const updatedPenulis = { nama: this.editedPenulis, biografi: this.editedBiografi };
-        const penulis = await updatePenulis(this.penulisToEdit.id_penulis, updatedPenulis);
-        const index = this.penulis.findIndex((p) => p.id_penulis === penulis.id_penulis);
-        this.penulis.splice(index, 1, penulis);
-        this.isEditing = false;
-        this.editedPenulis = '';
-        this.editedBiografi = '';
-        this.penulisToEdit = null;
-      } catch (error) {
-        console.error('Error updating author', error);
-      }
     },
     cancelEdit() {
       this.isEditing = false;
@@ -148,141 +204,132 @@ export default {
       this.editedBiografi = '';
       this.penulisToEdit = null;
     },
-    async deletePenulis(id) {
-      try {
-        await deletePenulis(id);
-        this.penulis = this.penulis.filter((penulisItem) => penulisItem.id_penulis !== id);
-      } catch (error) {
-        console.error('Error deleting author', error);
-      }
+    resetAddPenulisForm() {
+      this.newPenulis = '';
+      this.newBiografi = '';
+      this.isAddPenulisModalOpen = false;
+    },
+    showSuccessNotification(title, message) {
+      this.successTitle = title;
+      this.successMessage = message;
+      this.showSuccessModal = true;
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false;
     }
   }
 };
 </script>
 
 <style scoped>
-.container{
-  max-width: 800px;
+.container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.btn-primary {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #45a049;
-  transform: scale(1.05);
-}
-
-.penulis-list {
+.table {
   margin-top: 20px;
-}
-
-.penulis-item {
-  background-color: white;
-  padding: 15px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.penulis-actions {
-  display: flex;
-  gap: 15px;
-}
-
-.btn-edit {
-  background-color: #2196F3;
-  color: white;
-}
-
-.btn-edit:hover {
-  background-color: #0b7dda;
-}
-
-.btn-delete {
-  background-color: #f44336;
-  color: white;
-}
-
-.btn-delete:hover {
-  background-color: #d32f2f;
-}
-
-.empty-message {
-  text-align: center;
-  color: #666;
-}
-
-.edit-section {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 9999;
 }
 
-.modal {
-  display: block;
-  background-color: white;
+.modal-content {
+  background: white;
+  border-radius: 8px;
   padding: 20px;
-  border-radius: 6px;
   width: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+.btn-primary {
+  background-color: #34c38f;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.btn-cancel {
-  background-color: #9e9e9e;
+.btn-warning {
+  background-color: #f1c40f;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-white {
   color: white;
 }
 
-.btn-cancel:hover {
-  background-color: #757575;
+.biography-text {
+  text-align: justify;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.modal-overlay .modal-content .text-center {
+  margin-bottom: 20px;
+}
+
+.modal-overlay .modal-content .form-control {
+  margin-bottom: 12px;
 }
 </style>

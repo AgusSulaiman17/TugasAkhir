@@ -2,9 +2,9 @@
   <div>
     <AppNavbar />
     <div class="container mt-8">
-      <h2 class="mb-4 text-center text-primary">Manajemen Buku</h2>
+      <h2 class="mb-4 text-center text-ijotua">Manajemen Buku</h2>
       <div>
-        <button @click="openCreateModal" class="btn btn-primary mb-3">Tambah Buku</button>
+        <button @click="openCreateModal" class="btn bg-ijotua mb-3">Tambah Buku <b-icon-plus></b-icon-plus></button>
       </div>
 
       <!-- Tampilkan Pesan Error -->
@@ -25,7 +25,7 @@
 
         <div v-else>
           <table class="table table-striped table-bordered">
-            <thead class=" bg-ijomuda">
+            <thead class=" bg-ijomuda text-white">
               <tr>
                 <th>ID Buku</th>
                 <th>Judul</th>
@@ -46,12 +46,13 @@
                 <td>{{ buku.deskripsi }}</td>
                 <td>{{ buku.jumlah }}</td>
                 <td>
-                  <img v-if="buku.gambar" :src="`http://localhost:8080${buku.gambar}`" :alt="buku.judul" class="card-img-top" style="width: 100px" />
+                  <img v-if="buku.gambar" :src="`http://localhost:8080${buku.gambar}`" :alt="buku.judul"
+                    class="card-img-top" style="width: 100px; border-radius: 4px;" />
                   <span v-else class="text-center">Tidak ada gambar</span>
                 </td>
                 <td>
-                  <button @click="openEditModal(buku)" class="btn btn-sm btn-primary">Edit</button>
-                  <button @click="deleteBuku(buku.id_buku)" class="btn btn-sm btn-danger">Hapus</button>
+                  <button @click="openEditModal(buku)" class="btn bg-kuning"><b-icon-pencil></b-icon-pencil></button>
+                  <button @click="confirmDeleteBuku(buku.id_buku)" class="btn bg-merah"><b-icon-trash></b-icon-trash></button>
                 </td>
               </tr>
             </tbody>
@@ -65,7 +66,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">{{ isEditMode ? 'Edit Buku' : 'Tambah Buku' }}</h5>
-              <button @click="closeModal" class="btn-close"></button>
+              <button @click="closeModal" class="btn-close"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
               <form @submit.prevent="submitForm">
@@ -102,29 +103,46 @@
                   <input type="file" id="gambar" class="form-control" @change="onFileChange" />
                 </div>
                 <div class="d-flex justify-content-end">
-                  <button type="submit" class="btn btn-primary">
+                  <button type="submit" class="btn bg-ijomuda mr-2">
                     {{ isEditMode ? 'Update' : 'Tambah' }}
                   </button>
-                  <button type="button" class="btn btn-secondary ms-2" @click="closeModal">Batal</button>
+                  <button type="button" class="btn bg-merah ms-2" @click="closeModal">Batal</button>
                 </div>
               </form>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Notification Modal -->
+      <NotificationModal :isVisible="showNotification" :messageTitle="notificationTitle" :messageBody="notificationBody"
+        @close="showNotification = false" />
+
+      <!-- Delete Confirmation Modal -->
+      <NotificationModal v-if="showDeleteConfirmModal" :isVisible="showDeleteConfirmModal"
+        :messageTitle="'Konfirmasi Hapus'" :messageBody="'Apakah Anda yakin ingin menghapus item ini?'"
+        @close="closeDeleteConfirmModal">
+        <template #footer>
+          <button @click="deleteBuku()" class="btn bg-merah">Ya, Hapus</button>
+          <button @click="closeDeleteConfirmModal()" class="btn bg-ijomuda">Batal</button>
+        </template>
+      </NotificationModal>
     </div>
   </div>
 </template>
+
 
 <script>
 import { getBukuList, createBuku, updateBuku, deleteBuku } from '~/api/buku.js';
 import { getPenulis } from '@/api/penulis';
 import { getGenres } from '@/api/genres';
 import AppNavbar from '~/components/AppNavbar.vue';
+import NotificationModal from '~/components/NotificationModal.vue';
 
 export default {
   components: {
-    AppNavbar
+    AppNavbar,
+    NotificationModal
   },
   data() {
     return {
@@ -144,6 +162,12 @@ export default {
       isEditMode: false,
       loading: false,
       error: null,
+      confirmIdBuku: null,
+      showNotification: false,
+      showDeleteConfirmModal: false,
+      notificationTitle: '',
+      notificationBody: '',
+      bookToDelete: null,
     };
   },
   async created() {
@@ -211,25 +235,46 @@ export default {
       try {
         if (this.isEditMode) {
           await updateBuku(this.buku);
+          this.notificationTitle = 'Update Sukses';
+          this.notificationBody = 'Buku berhasil diperbarui.';
         } else {
           await createBuku(this.buku);
+          this.notificationTitle = 'Tambah Sukses';
+          this.notificationBody = 'Buku berhasil ditambahkan.';
         }
+        this.showNotification = true;
         this.getBukuList();
         this.closeModal();
       } catch (error) {
-        this.error = 'Gagal menyimpan data.';
-        console.error('Error while saving data:', error);
+        this.notificationTitle = 'Terjadi Kesalahan';
+        this.notificationBody = 'Gagal menyimpan data buku.';
+        this.showNotification = true;
       }
     },
-    async deleteBuku(id_buku) {
-      if (confirm('Apakah Anda yakin ingin menghapus buku ini?')) {
-        try {
-          await deleteBuku(id_buku);
-          this.getBukuList();
-        } catch (error) {
-          this.error = 'Gagal menghapus buku.';
-          console.error('Error deleting buku:', error);
-        }
+    confirmDeleteBuku(id) {
+      this.bookToDelete = id; // Simpan ID buku yang ingin dihapus
+      this.showDeleteConfirmModal = true; // Tampilkan modal konfirmasi
+    },
+    closeDeleteConfirmModal() {
+      this.showDeleteConfirmModal = false;
+      this.bookToDelete = null; // Hapus ID yang tersimpan
+    },
+    async deleteBuku() {
+      try {
+        this.loading = true; // Tambahkan loading indicator saat proses hapus
+        await deleteBuku(this.bookToDelete);
+        this.notificationTitle = 'Hapus Sukses';
+        this.notificationBody = 'Buku berhasil dihapus.';
+        this.showNotification = true;
+        this.getBukuList(); // Refresh daftar buku
+      } catch (error) {
+        console.error('Gagal menghapus buku:', error);
+        this.notificationTitle = 'Terjadi Kesalahan';
+        this.notificationBody = 'Gagal menghapus buku.';
+        this.showNotification = true;
+      } finally {
+        this.loading = false;
+        this.closeDeleteConfirmModal(); // Tutup modal konfirmasi
       }
     }
   }
@@ -238,7 +283,13 @@ export default {
 
 
 <style scoped>
-/* Modal Overlay */
+.container {
+  max-width: 1200px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -252,85 +303,78 @@ export default {
   z-index: 99999;
 }
 
-/* Modal Content */
 .modal-dialog {
   background-color: #fff;
-  width: 100%;
   max-width: 500px;
+  width: 100%;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Modal Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
+  background: green;
 }
 
 .modal-title {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #333;
+  color: #ffff;
+
 }
 
 .btn-close {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #aaa;
+  color: #888;
   cursor: pointer;
 }
 
-/* Modal Body */
-.modal-body {
-  padding: 20px 0;
+.btn-close i {
+  font-size: 1.2rem;
 }
 
-.form-label {
-  font-weight: bold;
-  color: #555;
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #212529;
+  border-radius: 8px;
 }
 
-.form-control, .form-select {
-  border-radius: 4px;
-  box-shadow: none;
-  border: 1px solid #ddd;
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table th, .table td {
+  border-top: 1px solid #dee2e6;
+  padding: 8px 12px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.alert {
   padding: 10px;
-  font-size: 1rem;
+  margin: 10px 0;
+  border-radius: 4px;
+  color: white;
+  background-color: #e74c3c;
 }
 
-button[type="submit"], .btn-secondary {
-  padding: 10px 20px;
-  font-size: 1rem;
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+  border-width: 0.3em;
 }
 
-button[type="submit"] {
-  background-color: #28a745;
-  color: #fff;
-  border: none;
-}
-
-button[type="button"] {
-  background-color: #6c757d;
-  color: #fff;
-  border: none;
-}
-
-/* Button Hover */
-button[type="submit"]:hover {
-  background-color: #218838;
-}
-
-button[type="button"]:hover {
-  background-color: #5a6268;
-}
-
-/* Modal Fade In Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -339,4 +383,5 @@ button[type="button"]:hover {
     opacity: 1;
   }
 }
+
 </style>

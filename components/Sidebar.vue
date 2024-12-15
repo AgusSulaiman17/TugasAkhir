@@ -2,7 +2,7 @@
   <transition name="slide">
     <div v-if="isOpen" class="sidebar">
       <div class="sidebar-header">
-        <h2 class="mt-2 ml-2">MENU</h2>
+        <h2 class="mt-2 ml-2 menu-title">MENU</h2>
         <button class="close-btn" @click="closeSidebar">×</button>
       </div>
       <ul class="sidebar-menu">
@@ -20,6 +20,7 @@
     </div>
   </transition>
 </template>
+
 
 <script>
 import LoadingSpinner from './LoadingSpinner.vue'; // Import the LoadingSpinner component
@@ -76,7 +77,6 @@ export default {
   color: white;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease-in-out;
@@ -86,6 +86,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(to bottom, #334339, #1d3c40);
+  padding: 1rem;
 }
 
 .close-btn {
@@ -103,6 +105,8 @@ export default {
 }
 
 .sidebar-menu li {
+
+  margin-left: 20px;
   margin-bottom: 1rem;
 }
 
@@ -159,7 +163,7 @@ export default {
 .btn.bg-ijomuda:hover {
   background-color: #5e9278;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-  transform: translateY(-4px); 
+  transform: translateY(-4px);
 }
 
 .btn.bg-ijomuda:hover::before {
@@ -175,4 +179,10 @@ export default {
   pointer-events: none;
 }
 
+.menu-title {
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+}
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div>
     <AppNavbar />
-    <HeroLanding class="mt-8 mb-8" />
+    <HeroLanding class="mt-8 " />
     <AppFooter />
   </div>
 </template>
@@ -21,7 +21,4 @@ export default{
 }
 </script>
 <style scoped>
-.mb-8{
-  margin-bottom: 150px;
-}
 </style>

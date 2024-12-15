@@ -1,118 +1,164 @@
 <template>
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col-md-6">
-        <h2>Profile</h2>
-        <div v-if="user">
-          <p><strong>Nama:</strong> {{ user.nama }}</p>
-          <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Role:</strong> {{ user.role }}</p>
-          <button class="btn btn-primary" @click="openEditModal">Edit Profile</button>
-        </div>
-        <div v-else>
-          <p>Loading...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Edit Profile -->
-    <div v-if="isModalOpen" class="modal fade show" tabindex="-1" role="dialog" style="display: block;">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Edit Profile</h5>
-            <button type="button" class="close" @click="closeEditModal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
+  <div>
+    <AppNavbar />
+    <div class="profile-page container mt-8">
+      <div class="profile-card card shadow-lg">
+        <div class="card-body text-center">
+          <h2 class="card-title">Profil Pengguna</h2>
+          <div v-if="user" class="user-details">
+            <img
+              :src="'https://ui-avatars.com/api/?name=' + user.nama + '&background=random'"
+              alt="Avatar"
+              class="rounded-circle avatar font-irish"
+            />
+            <h3 class="mt-3">{{ user.nama }}</h3>
+            <p><i class="fas fa-envelope"></i> {{ user.email }}</p>
+            <button class="btn bg-ijomuda mt-3" @click="openEditModal">
+              <i class="fas fa-edit"></i> Edit Profil
             </button>
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="updateUserProfile">
-              <div class="form-group">
-                <label for="nama">Nama</label>
-                <input v-model="formData.nama" type="text" class="form-control" id="nama" required />
-              </div>
-              <div class="form-group">
-                <label for="email">Email</label>
-                <input v-model="formData.email" type="email" class="form-control" id="email" required />
-              </div>
-              <div class="form-group">
-                <label for="role">Role</label>
-                <input v-model="formData.role" type="text" class="form-control" id="role" required />
-              </div>
-              <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-            </form>
+          <div v-else>
+            <p>Memuat data...</p>
           </div>
         </div>
       </div>
+
+      <!-- Modal Edit Profile -->
+      <div v-if="isModalOpen" class="modal mt-8 fade show" tabindex="-1" role="dialog" style="display: block;">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Edit Profil</h5>
+              <button type="button" class="close" @click="closeEditModal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="updateUserProfile">
+                <div class="form-group">
+                  <label for="nama">Nama</label>
+                  <input v-model="formData.nama" type="text" class="form-control" id="nama" required />
+                </div>
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input v-model="formData.email" type="email" class="form-control" id="email" required />
+                </div>
+                <button type="submit" class="btn bg-ijomuda w-100">Simpan Perubahan</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="isModalOpen" class="modal-backdrop fade show"></div>
     </div>
-    <div v-if="isModalOpen" class="modal-backdrop fade show"></div>
+
+    <!-- Success Notification Modal -->
+    <NotificationModal
+      v-if="showSuccessModal"
+      :isVisible="showSuccessModal"
+      :messageTitle="successTitle"
+      :messageBody="successMessage"
+      @close="closeSuccessModal"
+    />
   </div>
 </template>
 
+
 <script>
-import { getUser, updateUser } from '@/api/user'; // Sesuaikan dengan struktur proyek
+import { getUser, updateUser } from '@/api/user';
+import AppNavbar from '~/components/AppNavbar.vue';
+import NotificationModal from '~/components/NotificationModal.vue';
 
 export default {
+  components: {
+    AppNavbar,
+    NotificationModal,
+  },
   data() {
     return {
-      user: null, // Data pengguna yang akan ditampilkan
-      formData: { // Data untuk form edit profil
+      user: null,
+      formData: {
         nama: '',
         email: '',
-        role: '',
       },
-      isModalOpen: false, // Status modal
+      isModalOpen: false,
+      showSuccessModal: false,
+      successTitle: '',
+      successMessage: '',
     };
   },
   async created() {
-    const userId = this.$route.params.id_user; // Ambil id_user dari parameter route
+    const userId = this.$route.params.id_user;
     if (!userId) {
       console.error('User ID is missing');
       return;
     }
-    await this.fetchUserProfile(userId); // Ambil data pengguna berdasarkan id_user
+    await this.fetchUserProfile(userId);
   },
   methods: {
-    // Fungsi untuk mengambil data pengguna berdasarkan ID
     async fetchUserProfile(id_user) {
       try {
-        this.user = await getUser(id_user); // Ambil data pengguna dari API
-        this.formData = { ...this.user }; // Sinkronkan formData dengan data pengguna
+        this.user = await getUser(id_user);
+        this.formData = { ...this.user };
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
     },
-    // Fungsi untuk membuka modal edit profil
     openEditModal() {
       this.isModalOpen = true;
     },
-    // Fungsi untuk menutup modal edit profil
     closeEditModal() {
       this.isModalOpen = false;
     },
-    // Fungsi untuk memperbarui profil pengguna
     async updateUserProfile() {
       try {
         const id_user = this.user.id_user;
-        await updateUser(id_user, this.formData);  // Update ke server
-
-        // Update data di Vuex dan localStorage
+        await updateUser(id_user, this.formData);
         this.$store.commit('setUser', { ...this.formData });
-        localStorage.setItem('user', JSON.stringify(this.formData));  // Simpan ke localStorage
+        localStorage.setItem('user', JSON.stringify(this.formData));
+        this.user = { ...this.formData };
+        this.closeEditModal();
 
-        this.user = { ...this.formData };  // Update data pengguna setelah disimpan
-        this.closeEditModal();  // Tutup modal setelah berhasil
+        // Tampilkan notifikasi sukses
+        this.successTitle = 'Berhasil!';
+        this.successMessage = 'Profil Anda telah diperbarui.';
+        this.showSuccessModal = true;
       } catch (error) {
         console.error('Error updating profile:', error);
       }
-    }
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false;
+    },
   },
 };
+
 </script>
 
-
 <style scoped>
+.profile-page {
+  max-width: 600px;
+}
+
+.profile-card {
+  margin-top: 50px;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: #fff;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 3px solid  #70a799;
+}
+
+.modal{
+  z-index: 999999;
+}
 .modal-backdrop {
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99999;
 }
 </style>

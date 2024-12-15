@@ -13,17 +13,17 @@
         <ul>
           <li><nuxt-link to="/">Beranda</nuxt-link></li>
           <li><nuxt-link to="/user/dashboard">Dashboard</nuxt-link></li>
-          <li><nuxt-link to="/user/cariBuku">Cari Buku</nuxt-link></li>
-          <li><nuxt-link to="/user/peminjaman">Buku Dipinjam</nuxt-link></li>
+          <li><nuxt-link to="/listbuku">Cari Buku</nuxt-link></li>
+          <li><nuxt-link to="/peminjaman">Buku Dipinjam</nuxt-link></li>
         </ul>
       </div>
 
       <!-- Informasi Kontak -->
       <div class="footer-contact">
         <h4>Hubungi Kami</h4>
-        <p>Email: support@lentera.com</p>
+        <p>Email: booklentera@gmail.com.com</p>
         <p>Telepon: +62 812-3456-7890</p>
-        <p>Alamat: Jl. Literasi No. 123, Jakarta</p>
+        <p>Alamat: Jl. Literasi No. 123, Bandung Barat</p>
       </div>
     </div>
     <div class="footer-bottom">
@@ -46,7 +46,7 @@ export default {
 .app-footer {
   color: #fff;
   padding: 2rem 1rem;
-  margin-top: 3rem;
+  margin-top: 150px;
   font-family: Arial, sans-serif;
 }
 

@@ -20,7 +20,12 @@
             <input v-model="user.kata_sandi" type="password" id="kata_sandi" required />
             <span class="label">Kata Sandi</span>
           </div>
-          <button class="enter" type="submit">Register</button>
+          <button class="enter" type="submit" :disabled="isLoading">
+            <span v-if="!isLoading">Register</span>
+            <span v-else>
+              <div class="spinner"></div>
+            </span>
+          </button>
 
           <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
         </div>
@@ -28,16 +33,27 @@
           <p>Sudah punya akun? <a @click="login">Login</a></p>
         </div>
       </form>
-
     </div>
+      <!-- Success Notification Modal -->
+  <NotificationModal
+    v-if="showSuccessModal"
+    :isVisible="showSuccessModal"
+    :messageTitle="successTitle"
+    :messageBody="successMessage"
+    @close="closeSuccessModal"
+  />
   </div>
 </template>
 
+
 <script>
 import LoadingSpinner from '~/components/LoadingSpinner.vue';
+import NotificationModal from '~/components/NotificationModal.vue'; // Pastikan pathnya sesuai di proyek Anda
+
 export default {
   components: {
     LoadingSpinner,
+    NotificationModal,
   },
   data() {
     return {
@@ -47,25 +63,32 @@ export default {
         kata_sandi: '',
       },
       errorMessage: '',
+      isLoading: false, // State untuk mengatur kondisi loading
+      showSuccessModal: false, // State untuk menampilkan modal sukses
+      successTitle: 'Registrasi Berhasil!',
+      successMessage: 'Anda berhasil terdaftar. Silakan login menggunakan akun Anda.',
     };
   },
   methods: {
     async handleRegister() {
+      this.isLoading = true; // Mulai loading
       try {
         await this.$axios.post("/api/register", this.user);
-        // Menampilkan pemberitahuan sukses setelah register
-        alert("Register berhasil! Silakan login.");
-        this.$router.push('/login'); // Menyuruh pengguna ke halaman login setelah register berhasil
+        this.showSuccessModal = true; // Tampilkan modal sukses
       } catch (error) {
-        // Menangani error dan menampilkan pesan error
         this.errorMessage = error.response.data.message || "Terjadi kesalahan. Silakan coba lagi.";
-        // Tidak melakukan redirect jika ada error, tetap di halaman ini
+      } finally {
+        this.isLoading = false; // Selesai loading
       }
+    },
+    closeSuccessModal() {
+      this.showSuccessModal = false;
+      this.$router.push('/login'); // Redirect ke halaman login
     },
     login() {
       this.$store.dispatch('navigateWithLoading', { path: '/login', router: this.$router });
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -201,4 +224,24 @@ export default {
 .login-link a:hover {
   color: #007bff;
 }
+
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #000;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 </style>

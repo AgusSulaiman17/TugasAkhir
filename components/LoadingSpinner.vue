@@ -31,10 +31,10 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 99999999999999;
   opacity: 1;
   transition: opacity 0.3s ease;
-  visibility: visible; /* Untuk menjaga agar spinner selalu terlihat */
+  visibility: visible;
 }
 
 

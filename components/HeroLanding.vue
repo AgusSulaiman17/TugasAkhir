@@ -13,13 +13,13 @@
             <button class="btn bg-ijomuda">Pesan Sekarang</button>
           </router-link>
           <router-link to="/#">
-            <button class="btn btn-dark">About Me</button>
+            <button class="btn btn-dark">Website Keren</button>
           </router-link>
         </div>
         <div v-if="user">
           <button @click="masuk" class="btn bg-ijomuda tombol-landing">Masuk {{ user.name }}</button>
           <router-link to="/#">
-            <button class="btn btn-dark text-white tombol-landing">About Me</button>
+            <button class="btn btn-dark text-white tombol-landing">Website Keren</button>
           </router-link>
         </div>
       </div>

@@ -25,14 +25,15 @@
         >
           <div class="card-details">
 
-            <p class="text-title">{{ item.judul }}</p>
+            <p class="text-title"><b-icon :icon="item.icon" class="icon-sidemargin"></b-icon> {{ item.judul }}
+              </p>
 
             <p class="text-body">
               Kelola {{ item.judul }} ada disini
             </p>
           </div>
           <button @click="next(item.link)" class="card-button">
-            Lihat {{ item.judul }}
+            Lihat {{ item.judul }} <b-icon-search></b-icon-search>
           </button>
         </div>
       </div>
@@ -47,7 +48,6 @@
 import AppFooter from "~/components/AppFooter.vue";
 import AppNavbar from "~/components/AppNavbar.vue";
 import LoadingSpinner from "~/components/LoadingSpinner.vue";
-import { BIcon } from 'bootstrap-icons-vue';
 
 export default {
   middleware: "admin",
@@ -56,17 +56,16 @@ export default {
     AppNavbar,
     LoadingSpinner,
     AppFooter,
-    BIcon
   },
   data() {
     return {
       content: [
-        { judul: "Genre", link: "genres" },
-        { judul: "Penulis", link: "penulis" },
-        { judul: "Buku", link: "buku" },
-        { judul: "Data Peminjaman", link: "dataPeminjaman" },
-        { judul: "Pengembalian", link: "pengembalian" },
-        { judul: "Users", link: "Users" },
+        { judul: "Genre", link: "genres", icon: "tag" },
+        { judul: "Penulis", link: "penulis", icon: "pencil" },
+        { judul: "Buku", link: "buku", icon: "book" },
+        { judul: "Data Peminjaman", link: "dataPeminjaman", icon: "file-text" },
+        { judul: "Pengembalian", link: "pengembalian", icon: "clock" },
+        { judul: "Users", link: "users", icon: "person" },
       ],
     };
   },
@@ -84,28 +83,9 @@ export default {
         });
       }
     },
-    getIconForCategory(judul) {
-      switch (judul) {
-        case "Genre":
-          return "bookmarks"; // Ikon untuk genre
-        case "Penulis":
-          return "pen"; // Ikon untuk penulis
-        case "Buku":
-          return "book"; // Ikon untuk buku
-        case "Data Peminjaman":
-          return "clipboard"; // Ikon untuk data peminjaman
-        case "Pengembalian":
-          return "reply"; // Ikon untuk pengembalian
-        case "Users":
-          return "person"; // Ikon untuk users
-        default:
-          return "file-earmark"; // Ikon default
-      }
-    },
   },
 };
 </script>
-
 
 <style scoped>
 .admin-dashboard {
@@ -115,6 +95,7 @@ export default {
 }
 
 .welcome-card {
+  background: linear-gradient(to bottom, #334339, #1d3c40);
   color: white;
   border-radius: 16px;
   padding: 2rem;
@@ -165,7 +146,7 @@ export default {
   width: 60%;
   border-radius: 1rem;
   border: none;
-  background-color: #70a799;
+  background-color: #1e3630;
   color: #fff;
   font-size: 1rem;
   padding: 0.5rem 1rem;
@@ -187,7 +168,7 @@ export default {
 
 /* Hover Effects */
 .card:hover {
-  border-color: #70a799;
+  border-color: #254b42;
   box-shadow: 0 4px 18px 0 rgba(0, 0, 0, 0.25);
 }
 
